@@ -40,6 +40,13 @@
             <artifactId>javax.inject</artifactId>
             <version>1</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>8.5.9</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
