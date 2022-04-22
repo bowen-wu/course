@@ -1,6 +1,7 @@
 package com.personal.course.controller;
 
-import org.apache.catalina.User;
+import com.personal.course.entity.User;
+import com.personal.course.service.AuthService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,12 +10,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.inject.Inject;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1")
 public class AuthController {
+    private final AuthService authService;
+
+    @Inject
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
     @GetMapping("/test")
-    public String test() {
-        return "Hello World!";
+    public List<User> test() {
+        return authService.getAllUser();
     }
 
     /**

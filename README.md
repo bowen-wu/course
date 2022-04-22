@@ -78,3 +78,9 @@ CREATE TABLE SESSION
 ```
 apidoc -i src/main/java/com/personal/course/controller -o apidoc
 ```
+
+## Flyway
+
+```
+mvn flyway:migrate
+```
