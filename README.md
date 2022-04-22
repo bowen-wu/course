@@ -72,3 +72,9 @@ CREATE TABLE SESSION
     user_id INTEGER            NOT NULL
 )
 ```
+
+## Api Doc
+
+```
+apidoc -i src/main/java/com/personal/course/controller -o apidoc
+```
