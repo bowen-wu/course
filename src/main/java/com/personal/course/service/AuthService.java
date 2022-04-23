@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -19,5 +20,13 @@ public class AuthService {
 
     public List<User> getAllUser() {
         return Streamable.of(userDao.findAll()).toList();
+    }
+
+    public User getUserById(Integer id) {
+        Optional<User> byId = userDao.findById(id);
+        if (byId.isPresent()) {
+            return byId.get();
+        }
+        return null;
     }
 }

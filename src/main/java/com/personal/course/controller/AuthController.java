@@ -1,5 +1,6 @@
 package com.personal.course.controller;
 
+import com.personal.course.configuration.UserContext;
 import com.personal.course.entity.User;
 import com.personal.course.service.AuthService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
-import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -21,11 +22,6 @@ public class AuthController {
     @Inject
     public AuthController(AuthService authService) {
         this.authService = authService;
-    }
-
-    @GetMapping("/test")
-    public List<User> test() {
-        return authService.getAllUser();
     }
 
     /**
@@ -146,8 +142,12 @@ public class AuthController {
      * @return 已登录的用户
      */
     @GetMapping("/session")
-    public User authStatue() {
-        return null;
+    public User authStatus(HttpServletResponse response) {
+        User user = UserContext.getUser();
+        if (user == null) {
+            response.setStatus(401);
+        }
+        return user;
     }
 
     /**
