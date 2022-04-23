@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -56,7 +57,7 @@ class AuthIntegrationTest {
         // 检查登录状态 GET /session => 401
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + port + "/api/v1/session"))
-                .header("cookie", COOKIE_NAME + "=test")
+                .header(HttpHeaders.COOKIE, COOKIE_NAME + "=test")
                 .GET()
                 .build();
 
@@ -67,7 +68,7 @@ class AuthIntegrationTest {
         String usernameAndPassword = "username=jack&password=jack";
         request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + port + "/api/v1/user"))
-                .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                 .POST(BodyPublishers.ofString(usernameAndPassword))
                 .build();
 
@@ -80,7 +81,7 @@ class AuthIntegrationTest {
         // 登录 POST /session => 200 + User
         request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + port + "/api/v1/session"))
-                .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                 .POST(BodyPublishers.ofString(usernameAndPassword))
                 .build();
         response = client.send(request, BodyHandlers.ofString());

@@ -1,6 +1,7 @@
 package com.personal.course.controller;
 
 import com.personal.course.configuration.UserContext;
+import com.personal.course.entity.HttpException;
 import com.personal.course.entity.User;
 import com.personal.course.service.AuthService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -142,10 +143,10 @@ public class AuthController {
      * @return 已登录的用户
      */
     @GetMapping("/session")
-    public User authStatus(HttpServletResponse response) {
+    public User authStatus() {
         User user = UserContext.getUser();
         if (user == null) {
-            response.setStatus(401);
+            throw HttpException.unauthorized();
         }
         return user;
     }
