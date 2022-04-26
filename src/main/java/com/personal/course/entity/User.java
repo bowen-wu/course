@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.Instant;
@@ -16,9 +18,9 @@ public class User {
     private String username;
     @JsonIgnore
     private String encrypted_password;
-    private Instant createdOn;
-    private Instant updatedOn;
-    private Status status;
+    private Instant createdOn = Instant.now();
+    private Instant updatedOn = Instant.now();
+    private Status status = Status.OK;
 
     public String getUsername() {
         return username;
@@ -66,6 +68,7 @@ public class User {
     }
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Integer getId() {
         return id;
     }

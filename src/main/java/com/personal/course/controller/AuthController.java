@@ -1,9 +1,15 @@
 package com.personal.course.controller;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.personal.course.configuration.UserContext;
 import com.personal.course.entity.HttpException;
+import com.personal.course.entity.Response;
+import com.personal.course.entity.Session;
 import com.personal.course.entity.User;
 import com.personal.course.service.AuthService;
+import com.personal.course.service.SessionService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,16 +19,24 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.UUID;
+
+import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 
 @RestController
 @RequestMapping("/api/v1")
 public class AuthController {
     private final AuthService authService;
+    private final SessionService sessionService;
 
     @Inject
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, SessionService sessionService) {
         this.authService = authService;
+        this.sessionService = sessionService;
     }
 
     /**
@@ -69,8 +83,22 @@ public class AuthController {
      */
     @PostMapping("/user")
     @ResponseBody
-    public User register(@RequestParam("username") String username, @RequestParam("password") String password) {
-        return null;
+    public Response<User> register(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletResponse response) {
+        cleanParameter(username, password);
+        String encryptedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+        User registerUser = new User();
+        registerUser.setUsername(username);
+        registerUser.setEncrypted_password(encryptedPassword);
+        // TODO: 409
+        response.setStatus(HttpStatus.CREATED.value());
+        return Response.success(authService.registerUser(registerUser));
+    }
+
+    private void cleanParameter(String username, String password) {
+        // 清洗参数
+        if (username.length() < 6 || password.length() < 6) {
+            throw HttpException.badRequest("账号密码长度不够");
+        }
     }
 
     /**
@@ -89,7 +117,7 @@ public class AuthController {
      *
      * @apiSuccess {User} data 登录的用户
      * @apiSuccessExample Success-Response:
-     *     HTTP/1.1 200 Created
+     *     HTTP/1.1 200 OK
      *     {
      *       "user": {
      *           "id": 123,
@@ -111,8 +139,22 @@ public class AuthController {
      */
     @PostMapping("/session")
     @ResponseBody
-    public User login(@RequestParam("username") String username, @RequestParam("password") String password) {
-        return null;
+    public Response<User> login(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletResponse response) {
+        cleanParameter(username, password);
+        User userInDB = authService.getUserByUsername(username);
+        // TODO: username 没找到 User
+        if (BCrypt.verifyer().verify(password.toCharArray(), userInDB.getEncrypted_password()).verified) {
+            // 账号密码正确
+            String cookieValue = UUID.randomUUID().toString();
+            Cookie cookie = new Cookie(COOKIE_NAME, cookieValue);
+            response.addCookie(cookie);
+
+            Session session = new Session(cookieValue, userInDB);
+            sessionService.save(session);
+            return Response.success(userInDB);
+        } else {
+            throw HttpException.badRequest("密码错误！");
+        }
     }
 
     /**
@@ -143,12 +185,12 @@ public class AuthController {
      * @return 已登录的用户
      */
     @GetMapping("/session")
-    public User authStatus() {
+    public Response<User> authStatus() {
         User user = UserContext.getUser();
         if (user == null) {
             throw HttpException.unauthorized();
         }
-        return user;
+        return Response.success(user);
     }
 
     /**
@@ -172,6 +214,19 @@ public class AuthController {
      *
      */
     @DeleteMapping("/session")
-    public void logout() {
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        if (UserContext.getUser() == null) {
+            throw HttpException.unauthorized("未登录");
+        }
+        Arrays.stream(request.getCookies())
+                .filter(item -> item.getName().equals(COOKIE_NAME))
+                .map(Cookie::getValue)
+                .findFirst()
+                .ifPresent(sessionService::deleteSessionByCookie);
+
+        Cookie cookie = new Cookie(COOKIE_NAME, null);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        response.setStatus(HttpStatus.NO_CONTENT.value());
     }
 }

@@ -1,4 +1,4 @@
-CREATE TABLE users_role
+CREATE TABLE USERS_ROLE
 (
     id         SERIAL PRIMARY KEY,
     user_id    INTEGER     NOT NULL,

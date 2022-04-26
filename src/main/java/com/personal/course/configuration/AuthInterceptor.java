@@ -27,13 +27,15 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // get User & save user info to ThreadLocal
-        Arrays.stream(request.getCookies())
-                .filter(item -> item.getName().equals(COOKIE_NAME))
-                .map(Cookie::getValue)
-                .findFirst()
-                .flatMap(sessionService::getSessionByCookie)
-                .map(Session::getUser)
-                .ifPresent(UserContext::setUser);
+        if (request.getCookies() != null) {
+            Arrays.stream(request.getCookies())
+                    .filter(item -> item.getName().equals(COOKIE_NAME))
+                    .map(Cookie::getValue)
+                    .findFirst()
+                    .flatMap(sessionService::getSessionByCookie)
+                    .map(Session::getUser)
+                    .ifPresent(UserContext::setUser);
+        }
 
         return true;
     }

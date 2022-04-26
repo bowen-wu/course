@@ -1,6 +1,8 @@
 package com.personal.course.entity;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
@@ -12,6 +14,14 @@ public class Session {
     private Integer id;
     private String cookie;
     private User user;
+
+    public Session() {
+    }
+
+    public Session(String cookie, User user) {
+        this.cookie = cookie;
+        this.user = user;
+    }
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
@@ -36,6 +46,7 @@ public class Session {
     }
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Integer getId() {
         return id;
     }

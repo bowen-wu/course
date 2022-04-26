@@ -8,6 +8,14 @@ public class Response<T> {
         return new Response<>(message, data);
     }
 
+    public static <R> Response<R> success(R data) {
+        return new Response<>("OK", data);
+    }
+
+    public static <R> Response<R> fail(R data) {
+        return new Response<>("FAIL", data);
+    }
+
     private Response() {
     }
 

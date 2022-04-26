@@ -1,7 +1,9 @@
 package com.personal.course.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.course.CourseApplication;
+import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.User;
 import org.flywaydb.core.Flyway;
@@ -24,7 +26,6 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 
-import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
@@ -45,6 +46,7 @@ class AuthIntegrationTest {
 
     @BeforeEach
     public void setUp() {
+        objectMapper.findAndRegisterModules();
         Flyway flyway = Flyway.configure().dataSource(flywayUrl, flywayUser, flywayPassword).load();
         flyway.clean();
         flyway.migrate();
@@ -57,7 +59,6 @@ class AuthIntegrationTest {
         // 检查登录状态 GET /session => 401
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + port + "/api/v1/session"))
-                .header(HttpHeaders.COOKIE, COOKIE_NAME + "=test")
                 .GET()
                 .build();
 
@@ -65,7 +66,7 @@ class AuthIntegrationTest {
         assertEquals(401, response.statusCode());
 
         // 注册 POST /user => 201
-        String usernameAndPassword = "username=jack&password=jack";
+        String usernameAndPassword = "username=jackson&password=jackson";
         request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + port + "/api/v1/user"))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -74,9 +75,10 @@ class AuthIntegrationTest {
 
         response = client.send(request, BodyHandlers.ofString());
         assertEquals(201, response.statusCode());
-        User registerUser = objectMapper.readValue(response.body(), User.class);
-        assertEquals("jack", registerUser.getUsername());
-        assertEquals(Status.OK, registerUser.getStatus());
+        Response<User> registerResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
+        assertEquals("jackson", registerResponse.getData().getUsername());
+        assertEquals(Status.OK, registerResponse.getData().getStatus());
 
         // 登录 POST /session => 200 + User
         request = HttpRequest.newBuilder()
@@ -87,15 +89,47 @@ class AuthIntegrationTest {
         response = client.send(request, BodyHandlers.ofString());
 
         assertEquals(200, response.statusCode());
-        User loginUser = objectMapper.readValue(response.body(), User.class);
-        assertEquals("jack", loginUser.getUsername());
-        assertEquals(Status.OK, loginUser.getStatus());
+        Response<User> loginResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
+        assertEquals("jackson", loginResponse.getData().getUsername());
+        assertEquals(Status.OK, loginResponse.getData().getStatus());
+
+        String cookie = response.headers().allValues(HttpHeaders.SET_COOKIE).get(0);
 
         // 检查登录状态 GET /session => 200 + User
+        request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + "/api/v1/session"))
+                .setHeader(HttpHeaders.COOKIE, cookie)
+                .GET()
+                .build();
+
+        response = client.send(request, BodyHandlers.ofString());
+        assertEquals(200, response.statusCode());
+        Response<User> loginStatusResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
+        assertEquals("jackson", loginStatusResponse.getData().getUsername());
+        assertEquals(loginResponse.getData().getId(), loginStatusResponse.getData().getId());
+        assertEquals(loginResponse.getData().getStatus(), loginStatusResponse.getData().getStatus());
 
         // 登出 DELETE /session => 204
+        request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + "/api/v1/session"))
+                .setHeader(HttpHeaders.COOKIE, cookie)
+                .DELETE()
+                .build();
+
+        response = client.send(request, BodyHandlers.ofString());
+        assertEquals(204, response.statusCode());
 
         // 检查登录状态 GET /session => 401
+        request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + "/api/v1/session"))
+                .setHeader(HttpHeaders.COOKIE, cookie)
+                .GET()
+                .build();
+
+        response = client.send(request, BodyHandlers.ofString());
+        assertEquals(401, response.statusCode());
     }
 
     @Test
