@@ -41,7 +41,7 @@ public class AuthController {
     /**
      * @api {post} /api/v1/user 注册
      * @apiName 注册
-     * @apiGroup 登录与鉴权
+     * @apiGroup Auth Management
      *
      * @apiHeader {String} Accept application/json
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
@@ -88,7 +88,6 @@ public class AuthController {
         User registerUser = new User();
         registerUser.setUsername(username);
         registerUser.setEncrypted_password(encryptedPassword);
-        // TODO: 409
         response.setStatus(HttpStatus.CREATED.value());
         return Response.success(authService.registerUser(registerUser));
     }
@@ -103,7 +102,7 @@ public class AuthController {
     /**
      * @api {post} /api/v1/session 登录
      * @apiName 登录
-     * @apiGroup 登录与鉴权
+     * @apiGroup Auth Management
      *
      * @apiHeader {String} Accept application/json
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
@@ -168,7 +167,7 @@ public class AuthController {
     /**
      * @api {get} /api/v1/session 检查登录状态
      * @apiName 检查登录状态
-     * @apiGroup 登录与鉴权
+     * @apiGroup Auth Management
      *
      * @apiHeader {String} Accept application/json
      *
@@ -204,7 +203,7 @@ public class AuthController {
     /**
      * @api {delete} /api/v1/session 登出
      * @apiName 登出
-     * @apiGroup 登录与鉴权
+     * @apiGroup Auth Management
      *
      * @apiHeader {String} Accept application/json
      *
