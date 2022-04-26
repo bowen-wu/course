@@ -60,7 +60,36 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void return404WhenUnregisteredUserLogin() {
+    public void return404WhenUnregisteredUserLogin() throws IOException, InterruptedException {
+        String usernameAndPassword = "username=jackson&password=jackson";
+        HttpResponse<String> response = post("/session", BodyPublishers.ofString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        assertEquals(404, response.statusCode());
+    }
 
+    @Test
+    public void return409WhenDuplicateUsername() throws IOException, InterruptedException {
+        String usernameAndPassword = "username=jackson&password=jackson";
+        HttpResponse<String> response = post("/user", BodyPublishers.ofString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        assertEquals(201, response.statusCode());
+
+        response = post("/user", BodyPublishers.ofString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        assertEquals(409, response.statusCode());
+    }
+
+    @Test
+    public void return400WhenRegisterOrLoginUsernameOrPasswordInvalid() throws IOException, InterruptedException {
+        String usernameAndPassword = "username=jack&password=jackson";
+        HttpResponse<String> response = post("/user", BodyPublishers.ofString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        assertEquals(400, response.statusCode());
+
+        response = post("/session", BodyPublishers.ofString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        assertEquals(400, response.statusCode());
+
+        usernameAndPassword = "username=jackson&password=jacks";
+        response = post("/user", BodyPublishers.ofString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        assertEquals(400, response.statusCode());
+
+        response = post("/session", BodyPublishers.ofString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        assertEquals(400, response.statusCode());
     }
 }

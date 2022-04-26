@@ -8,7 +8,6 @@ import com.personal.course.entity.Session;
 import com.personal.course.entity.User;
 import com.personal.course.service.AuthService;
 import com.personal.course.service.SessionService;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -132,6 +131,13 @@ public class AuthController {
      *     {
      *       "message": "Bad Request"
      *     }
+     * @apiError 404 Not Found 该用户没有注册
+     *
+     * @apiErrorExample Error-Response:
+     *     HTTP/1.1 404 Not Found
+     *     {
+     *       "message": "Not Found"
+     *     }
      */
     /**
      * @param username 用户名
@@ -142,7 +148,9 @@ public class AuthController {
     public Response<User> login(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletResponse response) {
         cleanParameter(username, password);
         User userInDB = authService.getUserByUsername(username);
-        // TODO: username 没找到 User
+        if (userInDB == null) {
+            throw HttpException.notFound("该用户尚未注册！");
+        }
         if (BCrypt.verifyer().verify(password.toCharArray(), userInDB.getEncrypted_password()).verified) {
             // 账号密码正确
             String cookieValue = UUID.randomUUID().toString();

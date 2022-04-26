@@ -1,7 +1,10 @@
 package com.personal.course.service;
 
 import com.personal.course.dao.UserDao;
+import com.personal.course.entity.HttpException;
 import com.personal.course.entity.User;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -16,7 +19,11 @@ public class AuthService {
     }
 
     public User registerUser(User registerUser) {
-        return userDao.save(registerUser);
+        try {
+            return userDao.save(registerUser);
+        } catch (DataIntegrityViolationException e) {
+            throw HttpException.of(HttpStatus.CONFLICT, "用户名已经被注册！");
+        }
     }
 
     public User getUserByUsername(String username) {
