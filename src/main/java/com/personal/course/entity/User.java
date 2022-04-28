@@ -5,14 +5,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import java.time.Instant;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "USERS", schema = "public")
 public class User {
     private Integer id;
     private String username;
@@ -21,6 +26,20 @@ public class User {
     private Instant createdOn = Instant.now();
     private Instant updatedOn = Instant.now();
     private Status status = Status.OK;
+    private List<Role> roles;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "USERS_ROLE",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
+    }
 
     public String getUsername() {
         return username;

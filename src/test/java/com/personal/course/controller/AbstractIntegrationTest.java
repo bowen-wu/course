@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -46,8 +48,20 @@ public abstract class AbstractIntegrationTest {
         flyway.migrate();
     }
 
-    public HttpResponse<String> post(String uri, BodyPublisher bodyPublisher, String... headers) throws IOException, InterruptedException {
-        return getHttpRequest(uri, "POST", bodyPublisher, headers);
+    public String getCookieFromResponse(HttpResponse<String> response) {
+        return response.headers().allValues(HttpHeaders.SET_COOKIE).get(0);
+    }
+
+    public HttpResponse<String> login(String usernameAndPassword) throws IOException, InterruptedException {
+        return post("/session", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+    }
+
+    public HttpResponse<String> patch(String uri, String body, String... headers) throws IOException, InterruptedException {
+        return getHttpRequest(uri, "PATCH", BodyPublishers.ofString(body), headers);
+    }
+
+    public HttpResponse<String> post(String uri, String body, String... headers) throws IOException, InterruptedException {
+        return getHttpRequest(uri, "POST", BodyPublishers.ofString(body), headers);
     }
 
     public HttpResponse<String> delete(String uri, String... headers) throws IOException, InterruptedException {
@@ -62,22 +76,14 @@ public abstract class AbstractIntegrationTest {
         return getHttpRequest(uri, "GET", BodyPublishers.noBody(), headers);
     }
 
-    public HttpResponse<String> getHttpRequest(
-            String uri,
-            String method,
-            BodyPublisher bodyPublisher,
-            String... headers) throws IOException, InterruptedException {
+    public HttpResponse<String> getHttpRequest(String uri, String method, BodyPublisher bodyPublisher, String... headers) throws IOException, InterruptedException {
         return getHttpRequest(uri, method, bodyPublisher, BodyHandlers.ofString(), headers);
     }
 
-    public <T> HttpResponse<T> getHttpRequest(
-            String uri,
-            String method,
-            BodyPublisher bodyPublisher,
-            HttpResponse.BodyHandler<T> responseBodyHandler,
-            String... headers) throws IOException, InterruptedException {
+    public <T> HttpResponse<T> getHttpRequest(String uri, String method, BodyPublisher bodyPublisher, HttpResponse.BodyHandler<T> responseBodyHandler, String... headers) throws IOException, InterruptedException {
         HttpRequest request;
-        Builder builder = HttpRequest.newBuilder()
+        Builder builder = HttpRequest
+                .newBuilder()
                 .uri(URI.create("http://localhost:" + port + "/api/v1" + uri))
                 .method(method, bodyPublisher);
         if (headers.length > 0) {

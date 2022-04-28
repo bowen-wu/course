@@ -29,4 +29,8 @@ public class AuthService {
     public User getUserByUsername(String username) {
         return userDao.findByUsername(username);
     }
+
+    public User getUserById(Integer id) {
+        return userDao.findById(id).orElseThrow(() -> HttpException.notFound("无此用户"));
+    }
 }

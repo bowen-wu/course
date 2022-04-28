@@ -1,8 +1,10 @@
 package com.personal.course.configuration;
 
 import com.personal.course.dao.SessionDao;
+import com.personal.course.entity.HttpException;
 import com.personal.course.entity.Session;
 import com.personal.course.entity.User;
+import com.personal.course.entity.Whitelist;
 import com.personal.course.service.AuthService;
 import com.personal.course.service.SessionService;
 import org.springframework.lang.Nullable;
@@ -12,7 +14,9 @@ import javax.inject.Inject;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class AuthInterceptor implements HandlerInterceptor {
     public static String COOKIE_NAME = "COURSE_APP_SESSION_ID";
@@ -35,6 +39,16 @@ public class AuthInterceptor implements HandlerInterceptor {
                     .flatMap(sessionService::getSessionByCookie)
                     .map(Session::getUser)
                     .ifPresent(UserContext::setUser);
+        }
+        List<Whitelist> whitelistList = Arrays.asList(
+                Whitelist.of("/api/v1/session", "POST"),
+                Whitelist.of("/api/v1/session", "GET"),
+                Whitelist.of("/api/v1/user", "POST"));
+        if (UserContext.getUser() == null) {
+            whitelistList.stream()
+                    .filter(whitelist -> whitelist.getUri().equals(request.getRequestURI()) && whitelist.getMethod().equals(request.getMethod()))
+                    .findAny()
+                    .orElseThrow(() -> HttpException.unauthorized("请登录!"));
         }
 
         return true;

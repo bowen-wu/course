@@ -2,17 +2,31 @@ package com.personal.course.controller;
 
 import com.personal.course.entity.Response;
 import com.personal.course.entity.User;
+import com.personal.course.service.AuthService;
+import com.personal.course.service.UserService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.inject.Inject;
+
 @RestController
 @RequestMapping("/api/v1")
 public class UserController {
+    private final AuthService authService;
+    private final UserService userService;
+
+    @Inject
+    public UserController(AuthService authService, UserService userService) {
+        this.authService = authService;
+        this.userService = userService;
+    }
+
     /**
      * @api {patch} /api/v1/user 更新用户
      * @apiName updateUseRole
@@ -27,7 +41,7 @@ public class UserController {
      *     "id": 12345,
      *     "roles": [
      *          {
-     *              "name": "管理员"
+     *              "name": "admin"
      *          }
      *     ]
      * }
@@ -40,7 +54,7 @@ public class UserController {
      *         "username": "Alice",
      *         "roles": [
      *              {
-     *                  "name": "管理员"
+     *                  "name": "admin"
      *              }
      *         ]
      *     }
@@ -62,6 +76,8 @@ public class UserController {
      *     }
      *
      * @apiError 403 Forbidden 若没有权限
+     *
+     * @apiErrorExample Error-Response:
      *     HTTP/1.1 403 Forbidden
      *     {
      *       "message": "无权限"
@@ -80,8 +96,8 @@ public class UserController {
      */
     @PatchMapping("/user")
     @ResponseBody
-    public Response<User> updateUseRole() {
-        return null;
+    public Response<User> updateUserRole(@RequestBody User user) {
+        return Response.success(userService.updateUserRole(user.getId(), user.getRoles()));
     }
 
     /**
@@ -104,7 +120,7 @@ public class UserController {
      *         "username": "Alice",
      *         "roles": [
      *              {
-     *                  "name": "管理员"
+     *                  "name": "admin"
      *              }
      *         ]
      *     }
@@ -126,6 +142,8 @@ public class UserController {
      *     }
      *
      * @apiError 403 Forbidden 若没有权限
+     *
+     * @apiErrorExample Error-Response:
      *     HTTP/1.1 403 Forbidden
      *     {
      *       "message": "无权限"
@@ -144,8 +162,8 @@ public class UserController {
      */
     @GetMapping("/user/{id}")
     @ResponseBody
-    public Response<User> getUserById(@PathVariable("id") String id) {
-        return null;
+    public Response<User> getUserById(@PathVariable("id") Integer id) {
+        return Response.success(authService.getUserById(id));
     }
 
     /**
@@ -179,7 +197,7 @@ public class UserController {
      *               "username": "zhangsan"
      *               "roles": [
      *                   {
-     *                       "name": "管理员"
+     *                       "name": "admin"
      *                   }
      *               ]
      *           }
@@ -203,6 +221,8 @@ public class UserController {
      *     }
      *
      * @apiError 403 Forbidden 若没有权限
+     *
+     * @apiErrorExample Error-Response:
      *     HTTP/1.1 403 Forbidden
      *     {
      *       "message": "无权限"

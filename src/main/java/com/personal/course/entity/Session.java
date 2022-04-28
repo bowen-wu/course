@@ -9,7 +9,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "session")
+@Table(name = "SESSION")
 public class Session {
     private Integer id;
     private String cookie;

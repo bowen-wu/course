@@ -1,7 +1,7 @@
-CREATE TABLE USERS_ROLE
+CREATE TABLE PERMISSION
 (
     id         SERIAL PRIMARY KEY,
-    user_id    INTEGER     NOT NULL,
+    name       VARCHAR(50) NOT NULL,
     role_id    INTEGER     NOT NULL,
     created_on TIMESTAMP   NOT NULL DEFAULT now(),
     updated_on TIMESTAMP   NOT NULL DEFAULT now(),
