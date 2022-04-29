@@ -1,5 +1,6 @@
 package com.personal.course.controller;
 
+import com.personal.course.annotation.Admin;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.User;
 import com.personal.course.service.AuthService;
@@ -96,6 +97,7 @@ public class UserController {
      */
     @PatchMapping("/user")
     @ResponseBody
+    @Admin
     public Response<User> updateUserRole(@RequestBody User user) {
         return Response.success(userService.updateUserRole(user.getId(), user.getRoles()));
     }
@@ -162,6 +164,7 @@ public class UserController {
      */
     @GetMapping("/user/{id}")
     @ResponseBody
+    @Admin
     public Response<User> getUserById(@PathVariable("id") Integer id) {
         return Response.success(authService.getUserById(id));
     }
@@ -239,6 +242,7 @@ public class UserController {
      */
     @GetMapping("/user")
     @ResponseBody
+    @Admin
     public Response<User> getUserList(@RequestParam("pageSize") Integer pageSize, @RequestParam("pageNum") Integer pageNum, @RequestParam("orderType") String orderType, @RequestParam("orderBy") String orderBy, @RequestParam("search") String search) {
         return null;
     }

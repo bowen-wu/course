@@ -66,22 +66,25 @@ class UserIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void return403WhenNotAdminRequest() throws IOException, InterruptedException {
+        // Login
+        String cookie = getCookieFromResponse(login("username=student&password=student"));
+
+        HttpResponse<String> response = get("/user/1", HttpHeaders.COOKIE, cookie);
+        assertEquals(403, response.statusCode());
+
+        cookie = getCookieFromResponse(login("username=teacher&password=teacher"));
+        response = patch("/user", objectMapper.writeValueAsString(new User()), HttpHeaders.COOKIE, cookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        assertEquals(403, response.statusCode());
+    }
+
+    @Test
     public void adminCanGetUserList() {
 
     }
 
     @Test
-    public void return403WhenUpdateUserRole() {
-
-    }
-
-    @Test
     public void return404WhenUpdateUserRole() {
-
-    }
-
-    @Test
-    public void return403WhenGetUserById() {
 
     }
 

@@ -10,6 +10,14 @@ public class HttpException extends RuntimeException {
         return new HttpException(statusCode, message);
     }
 
+    public static HttpException forbidden() {
+        return HttpException.forbidden("无权限");
+    }
+
+    public static HttpException forbidden(String message) {
+        return HttpException.of(HttpStatus.FORBIDDEN, message);
+    }
+
     public static HttpException unauthorized() {
         return HttpException.unauthorized("请登录！");
     }
