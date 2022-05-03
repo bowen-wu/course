@@ -16,10 +16,10 @@ public class Response<T> {
         return new Response<>("FAIL", data);
     }
 
-    private Response() {
+    Response() {
     }
 
-    private Response(String message, T data) {
+    Response(String message, T data) {
         this.message = message;
         this.data = data;
     }

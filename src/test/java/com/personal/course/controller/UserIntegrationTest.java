@@ -1,6 +1,7 @@
 package com.personal.course.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Role;
 import com.personal.course.entity.Status;
@@ -11,6 +12,7 @@ import org.springframework.http.MediaType;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,10 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class UserIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void adminCanUpdateUserRole() throws IOException, InterruptedException {
-        // Login
-        String usernameAndPassword = "username=administrator&password=administrator";
-        HttpResponse<String> loginResponse = login(usernameAndPassword);
-        String cookie = getCookieFromResponse(loginResponse);
+        String cookie = getAdminCookie();
 
         // get user => 200
         HttpResponse<String> response = get("/user/1", HttpHeaders.COOKIE, cookie);
@@ -67,34 +66,95 @@ class UserIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void return403WhenNotAdminRequest() throws IOException, InterruptedException {
-        // Login
-        String cookie = getCookieFromResponse(login("username=student&password=student"));
+        // getCookie
+        String studentCookie = getUserCookie("username=student&password=student");
+        String teacherCookie = getUserCookie("username=teacher&password=teacher");
 
-        HttpResponse<String> response = get("/user/1", HttpHeaders.COOKIE, cookie);
+        HttpResponse<String> response = get("/user/1", HttpHeaders.COOKIE, studentCookie);
         assertEquals(403, response.statusCode());
 
-        cookie = getCookieFromResponse(login("username=teacher&password=teacher"));
-        response = patch("/user", objectMapper.writeValueAsString(new User()), HttpHeaders.COOKIE, cookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        response = patch("/user", objectMapper.writeValueAsString(new User()), HttpHeaders.COOKIE, teacherCookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        assertEquals(403, response.statusCode());
+
+        response = get("/user?pageNum=2&pageSize=1", HttpHeaders.COOKIE, teacherCookie);
+        assertEquals(403, response.statusCode());
+
+
+        response = patch("/user", objectMapper.writeValueAsString(new User()), HttpHeaders.COOKIE, studentCookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        assertEquals(403, response.statusCode());
+
+        response = get("/user?pageNum=2&pageSize=1", HttpHeaders.COOKIE, studentCookie);
         assertEquals(403, response.statusCode());
     }
 
     @Test
-    public void adminCanGetUserList() {
+    public void adminCanGetUserList() throws IOException, InterruptedException {
+        String adminCookie = getAdminCookie();
+        // UserList => 200 + list
+        HttpResponse<String> response = get("/user?pageNum=2&pageSize=1", HttpHeaders.COOKIE, adminCookie);
+        assertEquals(200, response.statusCode());
+        PageResponse<User> userListPageResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
+
+        assertEquals(2, userListPageResponse.getPageNum());
+        assertEquals(1, userListPageResponse.getPageSize());
+        assertEquals(3, userListPageResponse.getTotalPage());
+        assertEquals(1, userListPageResponse.getData().size());
+        assertEquals("teacher", userListPageResponse.getData().get(0).getUsername());
+        assertEquals(2, userListPageResponse.getData().get(0).getId());
+
+
+        // UserList + orderBy => 200 + list
+        response = get("/user?pageNum=1&pageSize=1&orderBy=DESC", HttpHeaders.COOKIE, adminCookie);
+
+        assertEquals(200, response.statusCode());
+        userListPageResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
+
+        assertEquals(1, userListPageResponse.getPageNum());
+        assertEquals(1, userListPageResponse.getPageSize());
+        assertEquals(3, userListPageResponse.getTotalPage());
+        assertEquals(1, userListPageResponse.getData().size());
+        assertEquals(3, userListPageResponse.getData().get(0).getId());
+        assertEquals("administrator", userListPageResponse.getData().get(0).getUsername());
+
+
+        // UserList + search => 200 + list
+        response = get("/user?pageNum=1&pageSize=3&search=e", HttpHeaders.COOKIE, adminCookie);
+
+        assertEquals(200, response.statusCode());
+        userListPageResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
+
+        assertEquals(1, userListPageResponse.getPageNum());
+        assertEquals(3, userListPageResponse.getPageSize());
+        assertEquals(1, userListPageResponse.getTotalPage());
+        assertEquals(2, userListPageResponse.getData().size());
+        assertEquals(Arrays.asList(1, 2), userListPageResponse.getData().stream().map(User::getId).collect(toList()));
+        assertEquals(Arrays.asList("student", "teacher"), userListPageResponse.getData().stream().map(User::getUsername).collect(toList()));
 
     }
 
     @Test
-    public void return404WhenUpdateUserRole() {
+    public void return404WhenUpdateUserRole() throws IOException, InterruptedException {
+        String adminCookie = getAdminCookie();
 
+        User updateUser = new User();
+        updateUser.setId(999);
+        Role updateRole = new Role();
+        updateRole.setName("admin");
+        List<Role> roles = new ArrayList<>();
+        roles.add(updateRole);
+        updateUser.setRoles(roles);
+
+        HttpResponse<String> response = patch("/user", objectMapper.writeValueAsString(updateUser), HttpHeaders.COOKIE, adminCookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        assertEquals(404, response.statusCode());
     }
 
     @Test
-    public void return404WhenGetUserById() {
-
-    }
-
-    @Test
-    public void return403WhenGetUserList() {
-
+    public void return404WhenGetUserById() throws IOException, InterruptedException {
+        String adminCookie = getAdminCookie();
+        HttpResponse<String> response = get("/user/999", HttpHeaders.COOKIE, adminCookie);
+        assertEquals(404, response.statusCode());
     }
 }

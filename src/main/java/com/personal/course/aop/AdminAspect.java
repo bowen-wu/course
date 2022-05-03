@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class AdminAspect {
     @Around("@annotation(com.personal.course.annotation.Admin)")
     public Object admin(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
-        UserContext.getUser().getRoles().stream().filter(role -> role.getName().equals("admin")).findAny().orElseThrow(HttpException::forbidden);
+        UserContext.getUser().getRoles().stream().filter(role -> "admin".equals(role.getName())).findAny().orElseThrow(HttpException::forbidden);
         return proceedingJoinPoint.proceed();
     }
 }

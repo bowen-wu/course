@@ -48,6 +48,14 @@ public abstract class AbstractIntegrationTest {
         flyway.migrate();
     }
 
+    public String getUserCookie(String usernameAndPassword) throws IOException, InterruptedException {
+        return getCookieFromResponse(login(usernameAndPassword));
+    }
+
+    public String getAdminCookie() throws IOException, InterruptedException {
+        return getUserCookie("username=administrator&password=administrator");
+    }
+
     public String getCookieFromResponse(HttpResponse<String> response) {
         return response.headers().allValues(HttpHeaders.SET_COOKIE).get(0);
     }
@@ -82,10 +90,7 @@ public abstract class AbstractIntegrationTest {
 
     public <T> HttpResponse<T> getHttpRequest(String uri, String method, BodyPublisher bodyPublisher, HttpResponse.BodyHandler<T> responseBodyHandler, String... headers) throws IOException, InterruptedException {
         HttpRequest request;
-        Builder builder = HttpRequest
-                .newBuilder()
-                .uri(URI.create("http://localhost:" + port + "/api/v1" + uri))
-                .method(method, bodyPublisher);
+        Builder builder = HttpRequest.newBuilder().uri(URI.create("http://localhost:" + port + "/api/v1" + uri)).method(method, bodyPublisher);
         if (headers.length > 0) {
             request = builder.headers(headers).build();
         }

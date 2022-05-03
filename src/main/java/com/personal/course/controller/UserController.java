@@ -1,10 +1,12 @@
 package com.personal.course.controller;
 
 import com.personal.course.annotation.Admin;
+import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.User;
 import com.personal.course.service.AuthService;
 import com.personal.course.service.UserService;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
+
+import static com.personal.course.entity.PageResponse.DEFAULT_ORDER_TYPE;
+import static com.personal.course.entity.PageResponse.DEFAULT_PAGE_NUM;
+import static com.personal.course.entity.PageResponse.DEFAULT_PAGE_SIZE;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -180,14 +186,14 @@ public class UserController {
      *
      * @apiParam {Number} [pageSize] 每页包含多少个用户
      * @apiParam {Number} [pageNum] 页码，从1开始
-     * @apiParam {String} [search] 搜索值
+     * @apiParam {String} [search] 搜索值 - 搜索用户名
      * @apiParam {String} [orderBy] 排序字段，如 username | createdAt
-     * @apiParam {String} [orderType] 排序方法，Asc | Desc
+     * @apiParam {String} [orderType] 排序方法，ASC | DESC
      *
      * @apiParamExample Request-Example:
      *      GET /api/v1/user?pageSize=10&pageNum=2&orderType=Desc&search=zhang
      *
-     * @apiSuccess (Success 200) {User} data 用户
+     * @apiSuccess (Success 200) {User[]} data 用户列表
      * @apiSuccessExample Success-Response:
      *     HTTP/1.1 200 OK
      *      {
@@ -243,7 +249,24 @@ public class UserController {
     @GetMapping("/user")
     @ResponseBody
     @Admin
-    public Response<User> getUserList(@RequestParam("pageSize") Integer pageSize, @RequestParam("pageNum") Integer pageNum, @RequestParam("orderType") String orderType, @RequestParam("orderBy") String orderBy, @RequestParam("search") String search) {
-        return null;
+    public PageResponse<User> getUserList(
+            @RequestParam(value = "pageNum", required = false) Integer pageNum,
+            @RequestParam(value = "pageSize", required = false) Integer pageSize,
+            @RequestParam(value = "orderType", required = false) String orderType,
+            @RequestParam(value = "orderBy", required = false) Direction orderBy,
+            @RequestParam(value = "search", required = false) String search) {
+        if (pageSize == null) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+        if (pageNum == null) {
+            pageNum = DEFAULT_PAGE_NUM;
+        }
+        if (orderBy == null) {
+            orderBy = Direction.ASC;
+        }
+        if (orderType == null) {
+            orderType = DEFAULT_ORDER_TYPE;
+        }
+        return userService.getUserList(pageNum, pageSize, orderType, orderBy, search);
     }
 }
