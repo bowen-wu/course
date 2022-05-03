@@ -18,14 +18,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "USERS", schema = "public")
-public class User {
-    private Integer id;
-    private String username;
+public class User extends BaseEntity {
     @JsonIgnore
     private String encrypted_password;
-    private Instant createdOn = Instant.now();
-    private Instant updatedOn = Instant.now();
-    private Status status = Status.OK;
+    private String username;
     private List<Role> roles;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -55,40 +51,5 @@ public class User {
 
     public void setEncrypted_password(String encrypted_password) {
         this.encrypted_password = encrypted_password;
-    }
-
-    public Instant getCreatedOn() {
-        return createdOn;
-    }
-
-    public void setCreatedOn(Instant createdOn) {
-        this.createdOn = createdOn;
-    }
-
-    public Instant getUpdatedOn() {
-        return updatedOn;
-    }
-
-    public void setUpdatedOn(Instant updatedOn) {
-        this.updatedOn = updatedOn;
-    }
-
-    @Enumerated(EnumType.STRING)
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Integer getId() {
-        return id;
     }
 }

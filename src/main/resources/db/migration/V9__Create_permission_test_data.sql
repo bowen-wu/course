@@ -1,13 +1,13 @@
 INSERT INTO PERMISSION (name, role_id)
-VALUES ('login', 1);
+VALUES ('user', 1);
 INSERT INTO PERMISSION (name, role_id)
-VALUES ('login', 2);
+VALUES ('user', 2);
 INSERT INTO PERMISSION (name, role_id)
-VALUES ('login', 3);
+VALUES ('user', 3);
 INSERT INTO PERMISSION (name, role_id)
-VALUES ('upload', 2);
+VALUES ('managementCourse', 2);
 INSERT INTO PERMISSION (name, role_id)
-VALUES ('upload', 3);
+VALUES ('managementCourse', 3);
 INSERT INTO PERMISSION (name, role_id)
 VALUES ('managementUser', 3);
 
