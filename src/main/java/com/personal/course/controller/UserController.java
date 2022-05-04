@@ -99,7 +99,8 @@ public class UserController {
      *     }
      */
     /**
-     *
+     * @param user 更新的用户信息
+     * @return 更新后的用户信息
      */
     @PatchMapping("/user")
     @ResponseBody
@@ -167,6 +168,7 @@ public class UserController {
      */
     /**
      * @param id 用户ID
+     * @return 用户信息
      */
     @GetMapping("/user/{id}")
     @ResponseBody

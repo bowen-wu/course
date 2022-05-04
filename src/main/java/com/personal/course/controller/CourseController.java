@@ -92,10 +92,12 @@ public class CourseController {
      *     }
      */
     /**
-     * @param pageSize
-     * @param pageNum
-     * @param orderBy
-     * @return
+     * @param pageSize  每页包含多少个课程
+     * @param pageNum   页码
+     * @param orderType 排序方法
+     * @param orderBy   排序字段
+     * @param search    搜索值
+     * @return 课程列表
      */
     @GetMapping("/course")
     public PageResponse<Course> getCourses(@RequestParam("pageSize") Integer pageSize, @RequestParam("pageNum") Integer pageNum, @RequestParam("orderBy") Direction orderBy, @RequestParam("orderType") String orderType, @RequestParam("search") String search) {
@@ -144,7 +146,8 @@ public class CourseController {
      *     }
      */
     /**
-     *
+     * @param courseId 课程ID
+     * @return 课程信息
      */
     @GetMapping("/course/{id}")
     public Response<Course> getCourse(@PathVariable("id") Integer courseId) {
@@ -196,7 +199,9 @@ public class CourseController {
      *     }
      */
     /**
-     *
+     * @param course   课程
+     * @param response response
+     * @return 创建的课程信息
      */
     @PostMapping("/course")
     @ManagementCourse
@@ -249,7 +254,8 @@ public class CourseController {
      *     }
      */
     /**
-     *
+     * @param courseId 课程ID
+     * @param response response
      */
     @DeleteMapping("/course/{id}")
     @ManagementCourse
@@ -310,7 +316,9 @@ public class CourseController {
      *     }
      */
     /**
-     *
+     * @param courseId 课程ID
+     * @param course   修改的课程信息
+     * @return 修改后的课程信息
      */
     @PatchMapping("/course/{id}")
     @ManagementCourse

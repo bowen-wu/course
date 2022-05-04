@@ -219,7 +219,8 @@ public class AuthController {
      *     }
      */
     /**
-     *
+     * @param request  request
+     * @param response response
      */
     @DeleteMapping("/session")
     public void logout(HttpServletRequest request, HttpServletResponse response) {
