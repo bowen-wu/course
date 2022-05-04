@@ -1,47 +1,14 @@
 package com.personal.course.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
 import java.util.List;
 
-@Entity
-@Table(name = "COURSE")
-public class Course extends BaseEntity {
+public class CourseVO {
     private String name;
     private String description;
     private String teacherName;
     private String teacherDescription;
     private Integer price;
-    private List<Video> videoList;
-
-    public Course() {
-    }
-
-    public Course(CourseVO course) {
-        this.name = course.getName();
-        this.description = course.getDescription();
-        this.teacherName = course.getTeacherName();
-        this.price = course.getPrice();
-        this.teacherDescription = course.getTeacherDescription();
-    }
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "COURSE_VIDEO",
-            joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "video_id")
-    )
-    public List<Video> getVideoList() {
-        return videoList;
-    }
-
-    public void setVideoList(List<Video> videoList) {
-        this.videoList = videoList;
-    }
+    private List<Integer> videoIdList;
 
     public String getName() {
         return name;
@@ -81,5 +48,13 @@ public class Course extends BaseEntity {
 
     public void setPrice(Integer price) {
         this.price = price;
+    }
+
+    public List<Integer> getVideoIdList() {
+        return videoIdList;
+    }
+
+    public void setVideoIdList(List<Integer> videoIdList) {
+        this.videoIdList = videoIdList;
     }
 }

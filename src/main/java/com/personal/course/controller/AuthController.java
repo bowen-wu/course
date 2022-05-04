@@ -157,6 +157,7 @@ public class AuthController {
             response.addCookie(cookie);
 
             Session session = new Session(cookieValue, userInDB);
+            sessionService.deleteSessionByUserId(userInDB.getId());
             sessionService.save(session);
             return Response.success(userInDB);
         } else {

@@ -39,11 +39,9 @@ public class UserService {
             throw HttpException.notFound("请检查用户ID");
         }
 
-        List<Role> roleList = roles.stream().map(Role::getName).map(roleDao::findByName).filter(Optional::isPresent).map(Optional::get).collect(toList());
+        List<Role> roleList = roles.stream().map(Role::getName).distinct().map(roleDao::findByName).filter(Optional::isPresent).map(Optional::get).collect(toList());
         userInDb.setRoles(roleList);
-        userDao.save(userInDb);
-
-        return userInDb;
+        return userDao.save(userInDb);
     }
 
     public PageResponse<User> getUserList(Integer pageNum, Integer pageSize, String orderType, Direction orderBy, String search) {

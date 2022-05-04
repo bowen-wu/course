@@ -33,7 +33,7 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Status.OK, createdCourseResponse.getData().getStatus());
 
         // 获取课程 => 200 + Course
-        res = get("/course/" + createdCourseId);
+        res = get("/course/" + createdCourseId, HttpHeaders.COOKIE, adminCookie);
         assertEquals(200, res.statusCode());
         Response<Course> getCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
         });
@@ -44,7 +44,7 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         Course pendModifyCourse = getCourseResponse.getData();
         pendModifyCourse.setPrice(39900);
         pendModifyCourse.setDescription("新的课程简介");
-        res = patch("/course/" + createdCourseId, objectMapper.writeValueAsString(pendingCreateCourse), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);
+        res = patch("/course/" + createdCourseId, objectMapper.writeValueAsString(pendModifyCourse), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);
         assertEquals(200, res.statusCode());
         Response<Course> modifiedCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
         });
@@ -54,7 +54,7 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         assertNotEquals(getCourseResponse.getData().getUpdatedOn(), modifiedCourseResponse.getData().getUpdatedOn());
 
         // 获取课程 => 200 + 修改后的 Course
-        res = get("/course/" + modifiedCourseResponse.getData().getId());
+        res = get("/course/" + modifiedCourseResponse.getData().getId(), HttpHeaders.COOKIE, adminCookie);
         assertEquals(200, res.statusCode());
         Response<Course> getModifiedCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
         });
@@ -66,7 +66,7 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         assertEquals(204, res.statusCode());
 
         // 获取课程 => 404
-        res = get("/course/" + createdCourseId);
+        res = get("/course/" + createdCourseId, HttpHeaders.COOKIE, adminCookie);
         assertEquals(404, res.statusCode());
     }
 
@@ -118,7 +118,7 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         Course pendingCreateCourse = createCourse();
 
         // get
-        HttpResponse<String> res = get("/course/999");
+        HttpResponse<String> res = get("/course/999", HttpHeaders.COOKIE, adminCookie);
         assertEquals(404, res.statusCode());
 
         // patch
@@ -142,19 +142,19 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         Course pendingCreateCourse = createCourse();
 
         pendingCreateCourse.setName(null);
-        exception400(pendingCreateCourse, "请输入课程名称");
+        exception400(pendingCreateCourse, "课程名称不能为空");
 
         pendingCreateCourse.setName("课程名称");
         pendingCreateCourse.setDescription(null);
-        exception400(pendingCreateCourse, "请输入课程简介");
+        exception400(pendingCreateCourse, "课程简介不能为空");
 
         pendingCreateCourse.setDescription("课程简介");
         pendingCreateCourse.setTeacherName(null);
-        exception400(pendingCreateCourse, "请输入老师姓名");
+        exception400(pendingCreateCourse, "老师姓名不能为空");
 
         pendingCreateCourse.setTeacherName("Jack");
         pendingCreateCourse.setPrice(null);
-        exception400(pendingCreateCourse, "请输入课程价格");
+        exception400(pendingCreateCourse, "课程价格不能为空");
     }
 
     private void exception400(Course pendingCreateCourse, String errorMessage) throws IOException, InterruptedException {

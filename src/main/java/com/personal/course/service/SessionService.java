@@ -26,6 +26,10 @@ public class SessionService {
         sessionDao.save(session);
     }
 
+    public void deleteSessionByUserId(Integer userId) {
+        sessionDao.deleteByUserId(userId);
+    }
+
     public void deleteSessionByCookie(String cookie) {
         sessionDao.deleteByCookie(cookie);
     }
