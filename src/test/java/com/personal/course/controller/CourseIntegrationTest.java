@@ -142,26 +142,18 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         Course pendingCreateCourse = createCourse();
 
         pendingCreateCourse.setName(null);
-        exception400(pendingCreateCourse, "课程名称不能为空");
+        exception400("/course", pendingCreateCourse, "课程名称不能为空");
 
         pendingCreateCourse.setName("课程名称");
         pendingCreateCourse.setDescription(null);
-        exception400(pendingCreateCourse, "课程简介不能为空");
+        exception400("/course", pendingCreateCourse, "课程简介不能为空");
 
         pendingCreateCourse.setDescription("课程简介");
         pendingCreateCourse.setTeacherName(null);
-        exception400(pendingCreateCourse, "老师姓名不能为空");
+        exception400("/course", pendingCreateCourse, "老师姓名不能为空");
 
         pendingCreateCourse.setTeacherName("Jack");
         pendingCreateCourse.setPrice(null);
-        exception400(pendingCreateCourse, "课程价格不能为空");
-    }
-
-    private void exception400(Course pendingCreateCourse, String errorMessage) throws IOException, InterruptedException {
-        String adminCookie = getAdminCookie();
-        HttpResponse<String> res = post("/course", objectMapper.writeValueAsString(pendingCreateCourse), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);
-        assertEquals(400, res.statusCode());
-        Response response = objectMapper.readValue(res.body(), Response.class);
-        assertEquals(errorMessage, response.getMessage());
+        exception400("/course", pendingCreateCourse, "课程价格不能为空");
     }
 }

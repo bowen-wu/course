@@ -28,6 +28,9 @@ public class VideoController {
      * @apiHeader {String} Accept application/json
      * @apiHeader {String} Content-Type application/json
      *
+     * @apiParam {String} name 视频名称
+     * @apiParam {String} url 视频地址
+     * @apiParam {String} [description] 视频描述
      * @apiParamExample Request-Example:
      *          POST /api/v1/video
      *          {
@@ -145,6 +148,9 @@ public class VideoController {
      * @apiHeader {String} Accept application/json
      * @apiHeader {String} Content-Type application/json
      *
+     * @apiParam {String} name 视频名称
+     * @apiParam {String} url 视频地址
+     * @apiParam {String} [description] 视频描述
      * @apiParamExample Request-Example:
      *          PATCH /api/v1/video/12345
      *          {

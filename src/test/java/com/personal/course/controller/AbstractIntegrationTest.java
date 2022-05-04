@@ -2,6 +2,8 @@ package com.personal.course.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.course.CourseApplication;
+import com.personal.course.entity.Course;
+import com.personal.course.entity.Response;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +24,8 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = CourseApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -46,6 +50,14 @@ public abstract class AbstractIntegrationTest {
         Flyway flyway = Flyway.configure().dataSource(flywayUrl, flywayUser, flywayPassword).load();
         flyway.clean();
         flyway.migrate();
+    }
+
+    public <T> void exception400(String uri, T pendingCreateCourse, String errorMessage) throws IOException, InterruptedException {
+        String adminCookie = getAdminCookie();
+        HttpResponse<String> res = post(uri, objectMapper.writeValueAsString(pendingCreateCourse), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);
+        assertEquals(400, res.statusCode());
+        Response response = objectMapper.readValue(res.body(), Response.class);
+        assertEquals(errorMessage, response.getMessage());
     }
 
     public String getUserCookie(String usernameAndPassword) throws IOException, InterruptedException {
