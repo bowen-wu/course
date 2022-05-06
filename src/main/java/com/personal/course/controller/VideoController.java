@@ -1,23 +1,35 @@
 package com.personal.course.controller;
 
 import com.personal.course.annotation.ManagementCourse;
+import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Video;
+import com.personal.course.service.VideoService;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/v1")
 public class VideoController {
+    private final VideoService videoService;
+
+    @Inject
+    public VideoController(VideoService videoService) {
+        this.videoService = videoService;
+    }
 
     /**
      * @api {post} /api/v1/video 创建视频
@@ -78,10 +90,20 @@ public class VideoController {
      *
      */
     @PostMapping("/video")
-    @ResponseBody
     @ManagementCourse
-    public Response<Video> createVideo(@RequestParam Video video) {
-        return null;
+    public Response<Video> createVideo(@RequestBody Video video, HttpServletResponse response) {
+        cleanUp(video);
+        response.setStatus(HttpStatus.CREATED.value());
+        return Response.success(videoService.createVideo(new Video(video)));
+    }
+
+    private void cleanUp(Video video) {
+        if (video.getName() == null) {
+            throw HttpException.badRequest("视频名称不能为空");
+        }
+        if (video.getUrl() == null) {
+            throw HttpException.badRequest("视频地址不能为空");
+        }
     }
 
     /**
@@ -134,9 +156,10 @@ public class VideoController {
      *
      */
     @DeleteMapping("/video/{id}")
-    @ResponseBody
     @ManagementCourse
-    public void deleteVideo(@PathVariable("id") Integer videoId) {
+    public void deleteVideo(@PathVariable("id") Integer videoId, HttpServletResponse response) {
+        response.setStatus(HttpStatus.NO_CONTENT.value());
+        videoService.deleteVideo(videoId);
     }
 
     /**
@@ -205,10 +228,10 @@ public class VideoController {
      *
      */
     @PatchMapping("/video/{id}")
-    @ResponseBody
     @ManagementCourse
-    public Response<Video> updateVideo(@PathVariable("id") Integer videoId, @RequestParam Video video) {
-        return null;
+    public Response<Video> updateVideo(@PathVariable("id") Integer videoId, @RequestBody Video video) {
+        cleanUp(video);
+        return Response.success(videoService.updateVideo(videoId, video));
     }
 
     /**
@@ -269,10 +292,9 @@ public class VideoController {
      *
      */
     @GetMapping("/video/{id}")
-    @ResponseBody
     @ManagementCourse
     public Response<Video> getVideoById(@PathVariable("id") Integer videoId) {
-        return null;
+        return Response.success(videoService.getVideoById(videoId));
     }
 
 
@@ -320,6 +342,7 @@ public class VideoController {
      * @return
      */
     @GetMapping("/video/token")
+    @ManagementCourse
     public Object getToken() {
         return null;
     }
@@ -383,7 +406,12 @@ public class VideoController {
      */
     @GetMapping("/video")
     @ManagementCourse
-    public PageResponse<Video> getVideoList(@RequestParam("pageSize") Integer pageSize, @RequestParam("pageNum") Integer pageNum, @RequestParam("orderBy") Direction orderBy, @RequestParam("orderType") String orderType, @RequestParam("search") String search) {
+    public PageResponse<Video> getVideoList(
+            @RequestParam(required = false, name = "pageSize") Integer pageSize,
+            @RequestParam(required = false, name = "pageNum") Integer pageNum,
+            @RequestParam(required = false, name = "orderBy") Direction orderBy,
+            @RequestParam(required = false, name = "orderType") String orderType,
+            @RequestParam(required = false, name = "search") String search) {
         return null;
     }
 }

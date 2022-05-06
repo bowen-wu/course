@@ -146,18 +146,17 @@ class VideoIntegrationTest extends AbstractIntegrationTest {
         Integer createdVideoId = createdVideoResponse.getData().getId();
 
         createdVideo.setName(null);
-        HttpResponse<String> res = patch("/video" + createdVideoId, objectMapper.writeValueAsString(createdVideo), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);
+        HttpResponse<String> res = patch("/video/" + createdVideoId, objectMapper.writeValueAsString(createdVideo), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);
         assertEquals(400, res.statusCode());
         Response response = objectMapper.readValue(res.body(), Response.class);
         assertEquals("视频名称不能为空", response.getMessage());
 
-        pendingCreateVideo.setName("视频名称");
-        pendingCreateVideo.setUrl(null);
-        res = patch("/video" + createdVideoId, objectMapper.writeValueAsString(createdVideo), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);
+        createdVideo.setName("视频名称");
+        createdVideo.setUrl(null);
+        res = patch("/video/" + createdVideoId, objectMapper.writeValueAsString(createdVideo), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);
         assertEquals(400, res.statusCode());
         response = objectMapper.readValue(res.body(), Response.class);
         assertEquals("视频地址不能为空", response.getMessage());
-
     }
 
     @Test

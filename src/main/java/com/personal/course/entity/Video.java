@@ -10,6 +10,15 @@ public class Video extends BaseEntity {
     private String description;
     private String url;
 
+    public Video() {
+    }
+
+    public Video(Video video) {
+        this.name = video.getName();
+        this.url = video.getUrl();
+        this.description = video.getDescription();
+    }
+
     public String getName() {
         return name;
     }
