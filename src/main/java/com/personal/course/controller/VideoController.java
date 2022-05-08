@@ -5,6 +5,7 @@ import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Video;
+import com.personal.course.service.OSClientService;
 import com.personal.course.service.VideoService;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
@@ -24,11 +25,19 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 @RequestMapping("/api/v1")
 public class VideoController {
+
+    private final OSClientService osClientService;
     private final VideoService videoService;
 
     @Inject
-    public VideoController(VideoService videoService) {
+    public VideoController(OSClientService osClientService, VideoService videoService) {
+        this.osClientService = osClientService;
         this.videoService = videoService;
+    }
+
+    @GetMapping("/test")
+    public String test(@RequestParam("source") String source) {
+        return osClientService.generateSignUrl(source);
     }
 
     /**
@@ -406,12 +415,7 @@ public class VideoController {
      */
     @GetMapping("/video")
     @ManagementCourse
-    public PageResponse<Video> getVideoList(
-            @RequestParam(required = false, name = "pageSize") Integer pageSize,
-            @RequestParam(required = false, name = "pageNum") Integer pageNum,
-            @RequestParam(required = false, name = "orderBy") Direction orderBy,
-            @RequestParam(required = false, name = "orderType") String orderType,
-            @RequestParam(required = false, name = "search") String search) {
+    public PageResponse<Video> getVideoList(@RequestParam(required = false, name = "pageSize") Integer pageSize, @RequestParam(required = false, name = "pageNum") Integer pageNum, @RequestParam(required = false, name = "orderBy") Direction orderBy, @RequestParam(required = false, name = "orderType") String orderType, @RequestParam(required = false, name = "search") String search) {
         return null;
     }
 }

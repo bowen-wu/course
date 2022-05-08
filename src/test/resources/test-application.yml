@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/course
+    username: root
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+os:
+  client:
+    secretId: ""
+    secretKey: ""
+    regin: ""
+    bucketName: ""

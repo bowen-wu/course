@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = CourseApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {"spring.config.location=classpath:test-application.properties"})
+@TestPropertySource(properties = {"spring.config.location=classpath:test-application.yml"})
 public abstract class AbstractIntegrationTest {
     @LocalServerPort
     private int port;

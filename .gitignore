@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local Config File ###
+src/main/resources/application-secret.yml
