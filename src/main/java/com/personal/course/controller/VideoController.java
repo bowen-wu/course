@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -33,6 +35,11 @@ public class VideoController {
     public VideoController(OSClientService osClientService, VideoService videoService) {
         this.osClientService = osClientService;
         this.videoService = videoService;
+    }
+
+    @PostMapping("/test")
+    public Response<String> test(@RequestParam("file") MultipartFile file) throws IOException {
+        return Response.success(osClientService.upload(file.getInputStream(), file.getOriginalFilename()));
     }
 
     @GetMapping("/test")

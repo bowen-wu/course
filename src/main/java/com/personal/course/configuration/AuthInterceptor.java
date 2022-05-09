@@ -30,6 +30,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        if(!request.getRequestURI().startsWith("/api/v1")) {
+            return true;
+        }
         // get User & save user info to ThreadLocal
         if (request.getCookies() != null) {
             Arrays.stream(request.getCookies())
@@ -44,6 +47,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                 Whitelist.of("/api/v1/session", "POST"),
                 Whitelist.of("/api/v1/session", "GET"),
                 Whitelist.of("/api/v1/test", "GET"),
+                Whitelist.of("/api/v1/test", "POST"),
                 Whitelist.of("/api/v1/user", "POST"));
         if (UserContext.getUser() == null) {
             whitelistList.stream()
