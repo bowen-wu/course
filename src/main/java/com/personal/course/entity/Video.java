@@ -2,21 +2,29 @@ package com.personal.course.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Entity
 @Table(name = "VIDEO")
 public class Video extends BaseEntity {
+    public static Pattern KEY_PATTERN = Pattern.compile("com\\/.*\\?");
     private String name;
     private String description;
-    private String url;
+    private String key;
 
     public Video() {
     }
 
-    public Video(Video video) {
-        this.name = video.getName();
-        this.url = video.getUrl();
-        this.description = video.getDescription();
+    public Video(VideoVo videoVo) {
+        this.name = videoVo.getName();
+        String key = "";
+        Matcher matcher = KEY_PATTERN.matcher(videoVo.getUrl());
+        if (matcher.find()) {
+            key = matcher.group(0);
+        }
+        this.key = key;
+        this.description = videoVo.getDescription();
     }
 
     public String getName() {
@@ -35,11 +43,11 @@ public class Video extends BaseEntity {
         this.description = description;
     }
 
-    public String getUrl() {
-        return url;
+    public String getKey() {
+        return key;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setKey(String key) {
+        this.key = key;
     }
 }

@@ -5,6 +5,7 @@ import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Video;
+import com.personal.course.entity.VideoVo;
 import com.personal.course.service.OSClientService;
 import com.personal.course.service.VideoService;
 import org.springframework.data.domain.Sort.Direction;
@@ -35,16 +36,6 @@ public class VideoController {
     public VideoController(OSClientService osClientService, VideoService videoService) {
         this.osClientService = osClientService;
         this.videoService = videoService;
-    }
-
-    @PostMapping("/test")
-    public Response<String> test(@RequestParam("file") MultipartFile file) throws IOException {
-        return Response.success(osClientService.upload(file.getInputStream(), file.getOriginalFilename()));
-    }
-
-    @GetMapping("/test")
-    public String test(@RequestParam("source") String source) {
-        return osClientService.generateSignUrl(source);
     }
 
     /**
@@ -107,17 +98,17 @@ public class VideoController {
      */
     @PostMapping("/video")
     @ManagementCourse
-    public Response<Video> createVideo(@RequestBody Video video, HttpServletResponse response) {
-        cleanUp(video);
+    public Response<VideoVo> createVideo(@RequestBody VideoVo videoVo, HttpServletResponse response) {
+        cleanUp(videoVo);
         response.setStatus(HttpStatus.CREATED.value());
-        return Response.success(videoService.createVideo(new Video(video)));
+        return Response.success(videoService.createVideo(videoVo));
     }
 
-    private void cleanUp(Video video) {
-        if (video.getName() == null) {
+    private void cleanUp(VideoVo videoVo) {
+        if (videoVo.getName() == null) {
             throw HttpException.badRequest("视频名称不能为空");
         }
-        if (video.getUrl() == null) {
+        if (videoVo.getUrl() == null) {
             throw HttpException.badRequest("视频地址不能为空");
         }
     }
@@ -245,9 +236,9 @@ public class VideoController {
      */
     @PatchMapping("/video/{id}")
     @ManagementCourse
-    public Response<Video> updateVideo(@PathVariable("id") Integer videoId, @RequestBody Video video) {
-        cleanUp(video);
-        return Response.success(videoService.updateVideo(videoId, video));
+    public Response<VideoVo> updateVideo(@PathVariable("id") Integer videoId, @RequestBody VideoVo videoVo) {
+        cleanUp(videoVo);
+        return Response.success(videoService.updateVideo(videoId, videoVo));
     }
 
     /**
@@ -309,41 +300,31 @@ public class VideoController {
      */
     @GetMapping("/video/{id}")
     @ManagementCourse
-    public Response<Video> getVideoById(@PathVariable("id") Integer videoId) {
-        return Response.success(videoService.getVideoById(videoId));
+    public Response<VideoVo> getVideoById(@PathVariable("id") Integer videoId) {
+        return Response.success(videoService.getVideoVoById(videoId));
     }
 
-
     /**
-     * @api {get} /api/v1/video/token 获取上传视频所需token
-     * @apiName 获取在指定课程下上传视频所需token等验证信息
+     * @api {get} /api/v1/video/upload 上传视频
+     * @apiName uploadVideo
      * @apiGroup Video Management
-     * @apiDescription
-     *  验证信息不止包括token。详见 https://help.aliyun.com/document_detail/31927.html。需要"课程管理"权限
+     * @apiDescription 需要"课程管理"权限
      *
-     *  当客户端上传成功时，应调用createVideo接口发起一个新的POST请求将视频URL发给应用。
-     *
-     * @apiHeader {String} Accept application/json
+     * @apiHeader {String} Accept multipart/form-data
      *
      * @apiParamExample Request-Example:
-     *   GET /api/v1/video/token
-     * @apiSuccess {String} accessid
-     * @apiSuccess {String} host
-     * @apiSuccess {String} policy
-     * @apiSuccess {String} signature
-     * @apiSuccess {Number} expire
-     * @apiSuccess {String} dir
+     *   POST /api/v1/video/upload
+     *   Form Data
+     *       file: (binary)
+     *
+     * @apiSuccess (Success 200) {String} data 视频地址
      *
      * @apiSuccessExample Success-Response:
      *     HTTP/1.1 200 OK
      *     {
-     *       "accessid":"6MKO******4AUk44",
-     *       "host":"http://post-test.oss-cn-hangzhou.aliyuncs.com",
-     *       "policy":"MCwxMDQ4NTc2MDAwXSxbInN0YXJ0cy13aXRoIiwiJGtleSIsInVzZXItZGlyXC8iXV19",
-     *       "signature":"VsxOcOudx******z93CLaXPz+4s=",
-     *       "expire":1446727949,
-     *       "dir":"user-dirs/"
+     *       "data":"http://post-test.oss-cn-hangzhou.aliyuncs.com",
      *     }
+     *
      * @apiError 400 Bad Request 若请求中包含错误
      * @apiError 401 Unauthorized 若未登录
      * @apiError 403 Forbidden 若无权限
@@ -355,14 +336,13 @@ public class VideoController {
      *     }
      */
     /**
-     * @return
+     *
      */
-    @GetMapping("/video/token")
+    @PostMapping("/video/upload")
     @ManagementCourse
-    public Object getToken() {
-        return null;
+    public Response<String> test(@RequestParam("file") MultipartFile file) throws IOException {
+        return Response.success(osClientService.upload(file.getInputStream(), file.getOriginalFilename()));
     }
-
 
     /**
      * @api {get} /api/v1/video 获取视频列表

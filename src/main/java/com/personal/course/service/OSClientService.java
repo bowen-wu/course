@@ -7,6 +7,7 @@ import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicSessionCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.exception.CosClientException;
+import com.qcloud.cos.exception.CosServiceException;
 import com.qcloud.cos.http.HttpMethodName;
 import com.qcloud.cos.http.HttpProtocol;
 import com.qcloud.cos.model.ObjectMetadata;
@@ -188,5 +189,20 @@ public class OSClientService {
         shutdownTransferManager(transferManager);
 
         return generateSignUrl(key);
+    }
+
+    public void deleteObject(String key) {
+        // 对象键(Key)是对象在存储桶中的唯一标识。详情请参见 [对象键](https://cloud.tencent.com/document/product/436/13324)
+        COSClient cosClient = createCOSClient(getTemporaryToken("*"));
+        TransferManager transferManager = createTransferManager(cosClient);
+
+        try {
+            cosClient.deleteObject(bucketName, key);
+        } catch (CosClientException e) {
+            e.printStackTrace();
+        }
+
+        // 确认本进程不再使用 cosClient 实例之后，关闭之
+        cosClient.shutdown();
     }
 }
