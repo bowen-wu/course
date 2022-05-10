@@ -4,25 +4,70 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.VideoVo;
+import com.personal.course.service.OSClientService;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.nio.channels.Channels;
+import java.nio.channels.Pipe;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class VideoVoIntegrationTest extends AbstractIntegrationTest {
+    private final String KEY = UUID.randomUUID() + ".png";
+    private final String testUrl = "http://course-api-doc.oss-cn-hangzhou.aliyuncs.com/test.mp4?Expires=1652001437&OSSAccessKeyId=TMP.3KhT7CnCWSDUdBwvfMkRs4KWoFEEskoAUdD3dn2iabHf4uDQNSnKz1bgJrdNeqZXb9xULBBkcqUkGkHYUVDSQhQ5ERexvt&Signature=WtAw6K4Ome2v0w3HIxdCP0QnE1o%3D";
+    @Mock
+    OSClientService osClientService;
+
     @Test
-    public void testVideoVoProcess() throws IOException, InterruptedException {
-        // TODO: 上传一张图片，获取 url
+    public void testVideoVoProcess() throws IOException, InterruptedException, URISyntaxException {
+        String adminCookie = getAdminCookie();
+
+        URL url = getClass().getClassLoader().getResource("static/200.jpeg");
+        HttpEntity httpEntity = MultipartEntityBuilder.create()
+                .addBinaryBody("file", Paths.get(url.toURI()).toFile(), ContentType.IMAGE_JPEG, KEY)
+                .build();
+        Pipe pipe = Pipe.open();
+        new Thread(() -> {
+            try (OutputStream outputStream = Channels.newOutputStream(pipe.sink())) {
+                // Write the encoded data to the pipeline.
+                httpEntity.writeTo(outputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        Mockito.when(osClientService.upload(Channels.newInputStream(pipe.source()), KEY)).thenReturn(testUrl);
+
+
+        HttpResponse<String> uploadFileResponse = post("/video/upload", BodyPublishers.ofInputStream(() -> Channels.newInputStream(pipe.source())), HttpHeaders.CONTENT_TYPE, httpEntity.getContentType().getValue(), HttpHeaders.COOKIE, adminCookie);
+
         // TODO: mock OSClientService
         // 增删改查 => 增删改查 课程管理权限(teacher & administrator)
         // 增加
-        String adminCookie = getAdminCookie();
         VideoVo pendingCreateVideoVo = createVideoVo();
 
         Response<VideoVo> createdVideoVoResponse = createVideoVo(adminCookie, pendingCreateVideoVo);
@@ -188,5 +233,25 @@ class VideoVoIntegrationTest extends AbstractIntegrationTest {
         assertEquals(pendingCreateVideoVo.getName(), createdVideoVo.getName());
         assertEquals(pendingCreateVideoVo.getDescription(), createdVideoVo.getDescription());
         assertEquals(pendingCreateVideoVo.getUrl(), createdVideoVo.getUrl());
+    }
+
+    private BodyPublisher oMultipartData(Map<Object, Object> data, String boundary) throws IOException {
+        var byteArrays = new ArrayList<byte[]>();
+        byte[] separator = ("--" + boundary + "\r\nContent-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8);
+        for (Map.Entry<Object, Object> entry : data.entrySet()) {
+            byteArrays.add(separator);
+
+            if (entry.getValue() instanceof Path) {
+                var path = (Path) entry.getValue();
+                String mimeType = Files.probeContentType(path);
+                byteArrays.add(("\"" + entry.getKey() + "\"; filename=\"" + path.getFileName() + "\"\r\nContent-Type: " + mimeType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+                byteArrays.add(Files.readAllBytes(path));
+                byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
+            } else {
+                byteArrays.add(("\"" + entry.getKey() + "\"\r\n\r\n" + entry.getValue() + "\r\n").getBytes(StandardCharsets.UTF_8));
+            }
+        }
+        byteArrays.add(("--" + boundary + "--").getBytes(StandardCharsets.UTF_8));
+        return BodyPublishers.ofByteArrays(byteArrays);
     }
 }

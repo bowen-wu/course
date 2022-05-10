@@ -65,6 +65,11 @@
             <artifactId>cos-sts_api</artifactId>
             <version>3.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

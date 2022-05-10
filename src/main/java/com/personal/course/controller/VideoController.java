@@ -338,10 +338,10 @@ public class VideoController {
     /**
      *
      */
-    @PostMapping("/video/upload")
+    @PostMapping(value = {"/video/upload", "/test"})
     @ManagementCourse
-    public Response<String> test(@RequestParam("file") MultipartFile file) throws IOException {
-        return Response.success(osClientService.upload(file.getInputStream(), file.getOriginalFilename()));
+    public Response<String> uploadVideo(@RequestParam("file") MultipartFile file) throws IOException {
+        return Response.success(osClientService.upload(file.getInputStream(), file.getName()));
     }
 
     /**

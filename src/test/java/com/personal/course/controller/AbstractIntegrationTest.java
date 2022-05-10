@@ -84,6 +84,10 @@ public abstract class AbstractIntegrationTest {
         return getHttpRequest(uri, "POST", BodyPublishers.ofString(body), headers);
     }
 
+    public HttpResponse<String> post(String uri, BodyPublisher body, String... headers) throws IOException, InterruptedException {
+        return getHttpRequest(uri, "POST", body, headers);
+    }
+
     public HttpResponse<String> delete(String uri, String... headers) throws IOException, InterruptedException {
         return getHttpRequest(uri, "DELETE", BodyPublishers.noBody(), headers);
     }
