@@ -1,14 +1,13 @@
 package com.personal.course.entity;
 
+import com.personal.course.common.utils.GetKeyFromUrlUtil;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Entity
 @Table(name = "VIDEO")
 public class Video extends BaseEntity {
-    public static Pattern KEY_PATTERN = Pattern.compile("com\\/.*\\?");
     private String name;
     private String description;
     private String key;
@@ -18,12 +17,7 @@ public class Video extends BaseEntity {
 
     public Video(VideoVo videoVo) {
         this.name = videoVo.getName();
-        String key = "";
-        Matcher matcher = KEY_PATTERN.matcher(videoVo.getUrl());
-        if (matcher.find()) {
-            key = matcher.group(0);
-        }
-        this.key = key;
+        this.key = GetKeyFromUrlUtil.getKeyFromUrl(videoVo.getUrl());
         this.description = videoVo.getDescription();
     }
 

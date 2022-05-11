@@ -1,5 +1,6 @@
 package com.personal.course.service;
 
+import com.personal.course.common.utils.GetKeyFromUrlUtil;
 import com.personal.course.dao.VideoDao;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.Video;
@@ -8,9 +9,6 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.time.Instant;
-import java.util.regex.Matcher;
-
-import static com.personal.course.entity.Video.KEY_PATTERN;
 
 @Service
 public class VideoService {
@@ -42,11 +40,7 @@ public class VideoService {
     public VideoVo updateVideo(Integer videoId, VideoVo videoVo) {
         Video videoInDb = getVideoById(videoId);
         videoInDb.setName(videoVo.getName());
-        String key = "";
-        Matcher matcher = KEY_PATTERN.matcher(videoVo.getUrl());
-        if (matcher.find()) {
-            key = matcher.group(0);
-        }
+        String key = GetKeyFromUrlUtil.getKeyFromUrl(videoVo.getUrl());
         if (!key.equals(videoInDb.getKey())) {
             osClientService.deleteObject(videoInDb.getKey());
         }
