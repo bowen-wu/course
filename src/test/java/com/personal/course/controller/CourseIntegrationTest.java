@@ -70,16 +70,6 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         assertEquals(404, res.statusCode());
     }
 
-    private Course createCourse() {
-        Course pendingCreateCourse = new Course();
-        pendingCreateCourse.setName("新增测试课程");
-        pendingCreateCourse.setDescription("测试课程简介");
-        pendingCreateCourse.setTeacherName("Jack");
-        pendingCreateCourse.setTeacherDescription("Jack is a good teacher!");
-        pendingCreateCourse.setPrice(29900);
-        return pendingCreateCourse;
-    }
-
     private void assertCoursePropertyEquals(Course pendingCreateCourse, Course createdCourse) {
         assertEquals(pendingCreateCourse.getName(), createdCourse.getName());
         assertEquals(pendingCreateCourse.getDescription(), createdCourse.getDescription());

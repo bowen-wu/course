@@ -52,6 +52,16 @@ public abstract class AbstractIntegrationTest {
         flyway.migrate();
     }
 
+    public Course createCourse() {
+        Course pendingCreateCourse = new Course();
+        pendingCreateCourse.setName("新增测试课程");
+        pendingCreateCourse.setDescription("测试课程简介");
+        pendingCreateCourse.setTeacherName("Jack");
+        pendingCreateCourse.setTeacherDescription("Jack is a good teacher!");
+        pendingCreateCourse.setPrice(29900);
+        return pendingCreateCourse;
+    }
+
     public <T> void exception400(String uri, T pendingCreateCourse, String errorMessage) throws IOException, InterruptedException {
         String adminCookie = getAdminCookie();
         HttpResponse<String> res = post(uri, objectMapper.writeValueAsString(pendingCreateCourse), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);

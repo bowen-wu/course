@@ -15,6 +15,16 @@ public class BaseEntity {
     private Instant updatedOn = Instant.now();
     private Status status = Status.OK;
 
+    public BaseEntity() {
+    }
+
+    public BaseEntity(Integer id, Instant createdOn, Instant updatedOn, Status status) {
+        this.id = id;
+        this.createdOn = createdOn;
+        this.updatedOn = updatedOn;
+        this.status = status;
+    }
+
     public void setId(Integer id) {
         this.id = id;
     }

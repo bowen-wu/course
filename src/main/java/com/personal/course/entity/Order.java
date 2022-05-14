@@ -1,8 +1,11 @@
 package com.personal.course.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.time.Instant;
 
 @Entity
 @Table(name = "ORDERS")
@@ -10,6 +13,27 @@ public class Order extends BaseEntity {
     private Integer userId;
     private Course course;
     private Integer price;
+    private String tradeNo;
+    @JsonIgnore
+    private String payTradeNo;
+
+    public Order() {
+    }
+
+    public Order(Integer id, Instant createdOn, Instant updatedOn, Status status, Integer userId, Course course, Integer price, String tradeNo) {
+        super(id, createdOn, updatedOn, status);
+        this.userId = userId;
+        this.course = course;
+        this.price = price;
+        this.tradeNo = tradeNo;
+    }
+
+    public Order(Integer userId, Course course, Integer price, String tradeNo) {
+        this.userId = userId;
+        this.course = course;
+        this.price = price;
+        this.tradeNo = tradeNo;
+    }
 
     @OneToOne
     public Course getCourse() {
@@ -34,5 +58,21 @@ public class Order extends BaseEntity {
 
     public void setPrice(Integer price) {
         this.price = price;
+    }
+
+    public String getTradeNo() {
+        return tradeNo;
+    }
+
+    public void setTradeNo(String tradeNo) {
+        this.tradeNo = tradeNo;
+    }
+
+    public String getPayTradeNo() {
+        return payTradeNo;
+    }
+
+    public void setPayTradeNo(String payTradeNo) {
+        this.payTradeNo = payTradeNo;
     }
 }

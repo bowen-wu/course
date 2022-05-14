@@ -6,5 +6,6 @@ public enum Status {
     // 订单状态
     DELETED,
     UNPAID,
+    CLOSED,
     PAID
 }
