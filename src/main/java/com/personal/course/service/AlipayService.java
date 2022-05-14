@@ -16,6 +16,7 @@ import com.personal.course.entity.Status;
 import com.personal.course.entity.TradePayResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -23,6 +24,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+@Service
 public class AlipayService implements PaymentService {
     @Value("${alipay.application.appId}")
     private String appId;

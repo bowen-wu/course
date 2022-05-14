@@ -11,3 +11,10 @@ os:
     secretKey: ""
     regin: ""
     bucketName: ""
+
+alipay:
+  application:
+    serverUrl: ""
+    appId: ""
+    privateKey: ""
+    alipayPublicKey: ""

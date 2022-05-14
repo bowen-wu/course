@@ -37,7 +37,6 @@ public class OrderService {
         Course course = courseService.getCourse(courseId);
         String tradeNo = UUID.randomUUID().toString();
         // TODO: returnUrl => 前端订单详情页面
-
         TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, course.getPrice(), course.getName(), "");
         Order pendCreateOrder = new Order();
         pendCreateOrder.setTradeNo(tradeNo);

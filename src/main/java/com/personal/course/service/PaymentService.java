@@ -2,9 +2,7 @@ package com.personal.course.service;
 
 import com.personal.course.entity.Status;
 import com.personal.course.entity.TradePayResponse;
-import org.springframework.stereotype.Service;
 
-@Service
 public interface PaymentService {
     /**
      * @param returnUrl 成功请求后重定向的 url
