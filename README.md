@@ -1,92 +1,59 @@
 ## 技术栈
 
-- Database => Postgres SQl
-- Login Status => Cookie => 保存至DB => SESSION Table
+- Java11
+- Spring Boot
+- Postgresql
+- JPA
+- 腾讯云 COS
+- 支付宝支付
 
-## Table
+## Deploy
 
-### USER Table
+### jar包
 
-```postgresql
-CREATE TABLE uses
-(
-    id                 serial PRIMARY KEY,
-    username           VARCHAR(50) UNIQUE NOT NULL,
-    encrypted_password VARCHAR(50)        NOT NULL,
-    created_on         TIMESTAMP          NOT NULL DEFAULT now(),
-    updated_on         TIMESTAMP          NOT NULL DEFAULT now(),
-    status             VARCHAR(10)        NOT NULL DEFAULT 'OK'
-);
+1. ` mvn clean verify `
+2. ` scp target/course-0.0.1-SNAPSHOT.jar <name>@<host>:/you/path `
+3. 服务器启动数据库
+   => ` docker run -p 5432:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_USER=root -e POSTGRES_DB=course -v /custom/mount:/var/lib/postgresql/data -d postgres `
+4. 初始化数据库
+    1. download code
+    2. Flyway => ` mvn flyway:migrate `
+5. 配置 application.yml，将 application.yml 中的秘钥配置好，application.yml 位置放在和 jar 包同一目录下
+6. 启动服务 => ` nohup java -jar course-0.0.1-SNAPSHOT.jar & `
 
--- status: OK DELETED
-```
+### [Docker 部署](https://www.jianshu.com/p/ff6eac8ea250)
 
-### ROLE Table
+## 接口文档
 
-```postgresql
-CREATE TABLE ROLE
-(
-    id         serial PRIMARY KEY,
-    name       VARCHAR(50) UNIQUE NOT NULL,
-    created_on TIMESTAMP          NOT NULL DEFAULT now(),
-    updated_on TIMESTAMP          NOT NULL DEFAULT now(),
-    status     VARCHAR(10)        NOT NULL DEFAULT 'OK'
-);
-```
+clone 项目之后，使用浏览器打开 /apidoc/index.html
 
-### USERS_ROLE Table
+### 生成接口文档
 
-```postgresql
-CREATE TABLE USERS_ROLE
-(
-    id         serial PRIMARY KEY,
-    user_id    INTEGER     NOT NULL,
-    role_id    INTEGER     NOT NULL,
-    created_on TIMESTAMP   NOT NULL DEFAULT now(),
-    updated_on TIMESTAMP   NOT NULL DEFAULT now(),
-    status     VARCHAR(10) NOT NULL DEFAULT 'OK'
-);
-```
+1. install apidoc => ` npm install -g apidoc `
+2. 生成 => ` apidoc -i src/main/java/com/personal/course/controller -o apidoc `
 
-### PERMISSION Table
+## Command
 
-```postgresql
-CREATE TABLE PERMISSION
-(
-    id         serial PRIMARY KEY,
-    name       VARCHAR(50) UNIQUE NOT NULL,
-    role_id    INTEGER            NOT NULL,
-    created_on TIMESTAMP          NOT NULL DEFAULT now(),
-    updated_on TIMESTAMP          NOT NULL DEFAULT now(),
-    status     VARCHAR(10)        NOT NULL DEFAULT 'OK'
-);
-```
-
-### SESSION Table
-
-```postgresql
-CREATE TABLE SESSION
-(
-    id      serial PRIMARY KEY,
-    cookie  VARCHAR(50) UNIQUE NOT NULL,
-    user_id INTEGER            NOT NULL
-)
-```
-
-## Api Doc
+### Api Doc
 
 ```
 apidoc -i src/main/java/com/personal/course/controller -o apidoc
 ```
 
-## Flyway
+### Flyway
 
 ```
 mvn flyway:migrate
 ```
 
-## Postgresql
+### Postgresql
 
 ```
-docker run -p 5432:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_USER=root -e POSTGRES_DB=course -d postgres
+docker run -p 5432:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_USER=root -e POSTGRES_DB=course -v /custom/mount:/var/lib/postgresql/data -d postgres
+```
+
+### Dockerfile
+
+```
+docker build [-f Dockerfile] . 
 ```
