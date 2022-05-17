@@ -9,9 +9,9 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -87,7 +87,7 @@ public class OrderController {
     }
 
     /**
-     * @api {put} /api/v1/order/{orderId} 取消订单
+     * @api {patch} /api/v1/order/{orderId} 取消订单
      * @apiName closeOrder
      * @apiGroup Order Management
      * @apiDescription 用于交易创建后，在一定时间内未进行支付，可将未付款的交易进行关闭
@@ -113,8 +113,8 @@ public class OrderController {
      *          }
      * @apiError 400 Bad Request 若请求中包含错误
      * @apiError 401 Unauthorized 若未登录
+     * @apiError 403 Forbidden 取消非自己的订单
      * @apiError 410 Gone 该订单不能取消。所请求的资源不再可用
-     * @apiError 504 Gateway Timeout 请求支付宝出错
      *
      * @apiErrorExample Error-Response:
      *     HTTP/1.1 400 Bad Request
@@ -126,8 +126,8 @@ public class OrderController {
      * @param orderId 订单ID
      * @return 取消的订单信息
      */
-    @PutMapping("/order/{orderId}")
-    public Response<Order> closeOrder(@PathVariable("orderId") Integer orderId, HttpServletResponse response) {
+    @PatchMapping("/order/{orderId}")
+    public Response<Order> closeOrder(@PathVariable("orderId") Integer orderId) {
         return Response.success(orderService.closeOrder(orderId));
     }
 
@@ -162,8 +162,8 @@ public class OrderController {
      *             "price": 9900,  // 单位 分
      *          }
      * @apiError 400 Bad request 若请求中包含错误
+     * @apiError 403 Forbidden 获取非自己的订单
      * @apiError 404 Not Found 没有该订单
-     * @apiError 504 Gateway Timeout 请求支付宝出错
      *
      * @apiErrorExample Error-Response:
      *     HTTP/1.1 400 Bad Request
@@ -196,6 +196,7 @@ public class OrderController {
      *
      * @apiError 400 Bad Request 若请求中包含错误
      * @apiError 401 Unauthorized 若未登录
+     * @apiError 403 Forbidden 删除非自己的订单
      * @apiError 404 Not Found 没有该订单
      *
      * @apiErrorExample Error-Response:

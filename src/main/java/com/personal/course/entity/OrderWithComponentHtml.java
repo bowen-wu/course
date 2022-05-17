@@ -6,11 +6,11 @@ public class OrderWithComponentHtml extends Order {
     private String formComponentHtml;
 
     public static OrderWithComponentHtml of(Order order, String formHtml) {
-        return new OrderWithComponentHtml(order.getId(), order.getCreatedOn(), order.getUpdatedOn(), order.getStatus(), order.getUserId(), order.getCourse(), order.getPrice(), order.getTradeNo(), formHtml);
+        return new OrderWithComponentHtml(order.getId(), order.getCreatedOn(), order.getUpdatedOn(), order.getStatus(), order.getUserId(), order.getCourse(), order.getPrice(), order.getTradeNo(), order.getPayTradeNo(), formHtml);
     }
 
-    private OrderWithComponentHtml(Integer id, Instant createdOn, Instant updatedOn, Status status, Integer userId, Course course, Integer price, String tradeNo, String formComponentHtml) {
-        super(id, createdOn, updatedOn, status, userId, course, price, tradeNo);
+    private OrderWithComponentHtml(Integer id, Instant createdOn, Instant updatedOn, Status status, Integer userId, Course course, Integer price, String tradeNo, String payTradeNo, String formComponentHtml) {
+        super(id, createdOn, updatedOn, status, userId, course, price, tradeNo, payTradeNo);
         this.formComponentHtml = formComponentHtml;
     }
 

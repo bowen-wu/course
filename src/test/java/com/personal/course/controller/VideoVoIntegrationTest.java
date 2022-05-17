@@ -243,7 +243,7 @@ class VideoVoIntegrationTest extends AbstractIntegrationTest {
     }
 
     private HttpResponse<String> sendUploadFileRequest(String adminCookie) throws URISyntaxException, IOException, InterruptedException {
-        URL url = getClass().getClassLoader().getResource("static/200.jpeg");
+        URL url = getClass().getClassLoader().getResource("static/test/200.jpeg");
         HttpEntity httpEntity = MultipartEntityBuilder.create().addBinaryBody("file", Paths.get(url.toURI()).toFile(), ContentType.IMAGE_JPEG, testKey).build();
         Pipe pipe = Pipe.open();
         new Thread(() -> {

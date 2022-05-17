@@ -20,12 +20,13 @@ public class Order extends BaseEntity {
     public Order() {
     }
 
-    public Order(Integer id, Instant createdOn, Instant updatedOn, Status status, Integer userId, Course course, Integer price, String tradeNo) {
+    public Order(Integer id, Instant createdOn, Instant updatedOn, Status status, Integer userId, Course course, Integer price, String tradeNo, String payTradeNo) {
         super(id, createdOn, updatedOn, status);
         this.userId = userId;
         this.course = course;
         this.price = price;
         this.tradeNo = tradeNo;
+        this.payTradeNo = payTradeNo;
     }
 
     public Order(Integer userId, Course course, Integer price, String tradeNo) {

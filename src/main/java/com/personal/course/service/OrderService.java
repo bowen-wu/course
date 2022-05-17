@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.naming.Context;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -44,12 +45,14 @@ public class OrderService {
         pendCreateOrder.setPrice(course.getPrice());
         pendCreateOrder.setUserId(UserContext.getUser().getId());
         pendCreateOrder.setStatus(Status.UNPAID);
+        pendCreateOrder.setPayTradeNo(tradePayResponse.getPayTradeNo());
         Order createdOrder = orderDao.save(pendCreateOrder);
         return OrderWithComponentHtml.of(createdOrder, tradePayResponse.getFromComponentHtml());
     }
 
     public Order getOrderById(Integer orderId) {
         Order orderInDb = orderDao.findById(orderId).orElseThrow(() -> HttpException.notFound("请检查订单ID是否正确！"));
+        checkIsOwnerOrder(orderInDb);
         if (Status.DELETED.equals(orderInDb.getStatus())) {
             throw HttpException.notFound("请检查订单ID是否正确！");
         }
@@ -68,6 +71,7 @@ public class OrderService {
 
     public void deleteOrderById(Integer orderId) {
         Order orderInDb = getOrderById(orderId);
+        checkIsOwnerOrder(orderInDb);
         if (Status.DELETED.equals(orderInDb.getStatus())) {
             throw HttpException.notFound("请检查订单ID是否正确！");
         }
@@ -78,28 +82,33 @@ public class OrderService {
 
     public PageResponse<Order> getOrderList(Integer pageNum, Integer pageSize, String orderType, Direction orderBy, String search) {
         PageRequest pageRequest = PageRequest.of(pageNum - 1, pageSize, orderBy, orderType);
-        Page<Order> orderPage;
-        if (search.isEmpty()) {
-            orderPage = orderDao.findAll(pageRequest);
-        } else {
+        Order probe = new Order();
+        probe.setUserId(UserContext.getUser().getId());
+        Example<Order> orderExample = Example.of(probe);
+        if (!search.isEmpty()) {
             Course exampleCourse = new Course();
             exampleCourse.setName(search);
-            Order probe = new Order();
             probe.setCourse(exampleCourse);
-            Example<Order> orderExample = Example.of(probe);
-            orderPage = orderDao.findAll(orderExample, pageRequest);
         }
+        Page<Order> orderPage = orderDao.findAll(orderExample, pageRequest);
         List<Order> orderList = orderPage.getContent().stream().map(this::queryOrderPayStatus).collect(Collectors.toList());
         return PageResponse.of(pageNum, pageSize, orderPage.getTotalPages(), "OK", orderList);
     }
 
     public Order closeOrder(Integer orderId) {
         Order orderInDb = getOrderById(orderId);
+        checkIsOwnerOrder(orderInDb);
         if (Status.UNPAID.equals(orderInDb.getStatus())) {
             // 未支付状态下可以关闭订单
             paymentService.closeOrder(orderInDb.getPayTradeNo());
             return queryOrderPayStatus(orderInDb);
         }
         throw HttpException.of(HttpStatus.GONE, "该订单不是未支付状态！");
+    }
+
+    private void checkIsOwnerOrder(Order orderInDb) {
+        if (!UserContext.getUser().getId().equals(orderInDb.getUserId())) {
+            throw HttpException.forbidden();
+        }
     }
 }

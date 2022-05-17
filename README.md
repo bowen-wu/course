@@ -55,5 +55,5 @@ docker run -p 5432:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_USER=root -e POSTG
 ### Dockerfile
 
 ```
-docker build [-f Dockerfile] . 
+docker build [--platform linux/amd64] [-f Dockerfile] . 
 ```
