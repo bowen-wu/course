@@ -1,4 +1,7 @@
-package com.personal.course.entity;
+package com.personal.course.entity.DO;
+
+import com.personal.course.entity.Query.CourseQuery;
+import com.personal.course.entity.Status;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -6,6 +9,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -21,7 +25,7 @@ public class Course extends BaseEntity {
     public Course() {
     }
 
-    public Course(CourseVO course) {
+    public Course(CourseQuery course) {
         this.name = course.getName();
         this.description = course.getDescription();
         this.teacherName = course.getTeacherName();

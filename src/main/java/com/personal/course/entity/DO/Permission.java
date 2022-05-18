@@ -1,4 +1,4 @@
-package com.personal.course.entity;
+package com.personal.course.entity.DO;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

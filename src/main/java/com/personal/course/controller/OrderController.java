@@ -1,6 +1,6 @@
 package com.personal.course.controller;
 
-import com.personal.course.entity.Order;
+import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.OrderWithComponentHtml;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;

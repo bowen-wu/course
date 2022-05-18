@@ -2,9 +2,9 @@ package com.personal.course.service;
 
 import com.personal.course.configuration.UserContext;
 import com.personal.course.dao.OrderDao;
-import com.personal.course.entity.Course;
+import com.personal.course.entity.DO.Course;
+import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.HttpException;
-import com.personal.course.entity.Order;
 import com.personal.course.entity.OrderWithComponentHtml;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Status;
@@ -16,7 +16,6 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.naming.Context;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +34,7 @@ public class OrderService {
     }
 
     public OrderWithComponentHtml placeOrder(Integer courseId) {
-        Course course = courseService.getCourse(courseId);
+        Course course = courseService.getCourseById(courseId);
         String tradeNo = UUID.randomUUID().toString();
         // TODO: returnUrl => 前端订单详情页面
         TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, course.getPrice(), course.getName(), "");

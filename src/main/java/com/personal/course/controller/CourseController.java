@@ -1,11 +1,13 @@
 package com.personal.course.controller;
 
 import com.personal.course.annotation.ManagementCourse;
-import com.personal.course.entity.Course;
-import com.personal.course.entity.CourseVO;
+import com.personal.course.configuration.UserContext;
+import com.personal.course.entity.DO.Course;
+import com.personal.course.entity.Query.CourseQuery;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;
+import com.personal.course.entity.VO.CourseVO;
 import com.personal.course.service.CourseService;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
+
+import static com.personal.course.entity.PageResponse.DEFAULT_ORDER_BY;
+import static com.personal.course.entity.PageResponse.DEFAULT_ORDER_TYPE;
+import static com.personal.course.entity.PageResponse.DEFAULT_PAGE_NUM;
+import static com.personal.course.entity.PageResponse.DEFAULT_PAGE_SIZE;
 
 /**
  * 课程管理相关
@@ -45,14 +52,14 @@ public class CourseController {
      *
      * @apiHeader {String} Accept application/json
      *
-     * @apiParam {String} [search] 搜索关键字
+     * @apiParam {String} [search] 搜索关键字，课程名称
      * @apiParam {Number} [pageSize] 每页包含多少个课程
      * @apiParam {Number} [pageNum] 页码，从1开始
      * @apiParam {String} [orderBy] 排序字段，如price/createdAt
      * @apiParam {String} [orderType] 排序方法，ASC/DESC
      *
      * @apiParamExample Request-Example:
-     *            GET /api/v1/course?pageSize=10&pageNum=1&orderBy=price&orderType=Desc&search=21天
+     *            GET /api/v1/course?pageSize=10&pageNum=1&orderBy=price&orderType=Desc&search=21天&userId=1
      * @apiSuccess {Number} totalPage 总页数
      * @apiSuccess {Number} pageNum 当前页码，从1开始
      * @apiSuccess {Number} pageSize 每页包含多少个课程
@@ -79,7 +86,6 @@ public class CourseController {
      *                }
      *             ]
      *             price: 9900,
-     *             purchased: true
      *          }
      *       ]
      *     }
@@ -100,8 +106,17 @@ public class CourseController {
      * @return 课程列表
      */
     @GetMapping("/course")
-    public PageResponse<Course> getCourses(@RequestParam("pageSize") Integer pageSize, @RequestParam("pageNum") Integer pageNum, @RequestParam("orderBy") Direction orderBy, @RequestParam("orderType") String orderType, @RequestParam("search") String search) {
-        return null;
+    public PageResponse<CourseVO> getCourses(
+            @RequestParam(required = false, value = "pageSize") Integer pageSize,
+            @RequestParam(required = false, value = "pageNum") Integer pageNum,
+            @RequestParam(required = false, value = "orderBy") Direction orderBy,
+            @RequestParam(required = false, value = "orderType") String orderType,
+            @RequestParam(required = false, value = "search") String search) {
+        if (pageNum == null) pageNum = DEFAULT_PAGE_NUM;
+        if (pageSize == null) pageSize = DEFAULT_PAGE_SIZE;
+        if (orderBy == null) orderBy = DEFAULT_ORDER_BY;
+        if (orderType == null) orderType = DEFAULT_ORDER_TYPE;
+        return courseService.getCourseList(pageNum, pageSize, orderType, orderBy, search);
     }
 
     /**
@@ -134,7 +149,6 @@ public class CourseController {
      *                }
      *             ]
      *             "price": 9900,
-     *             "purchased": false
      *          }
      * @apiError 400 Bad request 若请求中包含错误
      * @apiError 404 Not Found 没有该课程
@@ -150,8 +164,8 @@ public class CourseController {
      * @return 课程信息
      */
     @GetMapping("/course/{id}")
-    public Response<Course> getCourse(@PathVariable("id") Integer courseId) {
-        return Response.success(courseService.getCourse(courseId));
+    public Response<CourseVO> getCourse(@PathVariable("id") Integer courseId) {
+        return Response.success(courseService.getCourse(courseId, UserContext.getUser().getId()));
     }
 
     /**
@@ -199,19 +213,19 @@ public class CourseController {
      *     }
      */
     /**
-     * @param course   课程
-     * @param response response
+     * @param courseQuery 课程
+     * @param response    response
      * @return 创建的课程信息
      */
     @PostMapping("/course")
     @ManagementCourse
-    public Response<Course> createCourse(@RequestBody CourseVO course, HttpServletResponse response) {
-        cleanUp(course);
+    public Response<CourseVO> createCourse(@RequestBody CourseQuery courseQuery, HttpServletResponse response) {
+        cleanUp(courseQuery);
         response.setStatus(HttpStatus.CREATED.value());
-        return Response.success(courseService.createCourse(course));
+        return Response.success(courseService.createCourse(courseQuery));
     }
 
-    private void cleanUp(CourseVO course) {
+    private void cleanUp(CourseQuery course) {
         if (course.getName() == null) {
             throw HttpException.badRequest("课程名称不能为空");
         }
@@ -322,8 +336,8 @@ public class CourseController {
      */
     @PatchMapping("/course/{id}")
     @ManagementCourse
-    public Response<Course> updateCourse(@PathVariable("id") Integer courseId, @RequestBody CourseVO course) {
+    public Response<CourseVO> updateCourse(@PathVariable("id") Integer courseId, @RequestBody CourseQuery course) {
         cleanUp(course);
-        return Response.success(courseService.updateCourse(courseId, course));
+        return Response.success(courseService.updateCourse(courseId, course, UserContext.getUser().getId()));
     }
 }

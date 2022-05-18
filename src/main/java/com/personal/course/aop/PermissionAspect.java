@@ -2,8 +2,8 @@ package com.personal.course.aop;
 
 import com.personal.course.configuration.UserContext;
 import com.personal.course.entity.HttpException;
-import com.personal.course.entity.Permission;
-import com.personal.course.entity.Role;
+import com.personal.course.entity.DO.Permission;
+import com.personal.course.entity.DO.Role;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;

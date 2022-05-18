@@ -1,11 +1,8 @@
 package com.personal.course.configuration;
 
-import com.personal.course.dao.SessionDao;
 import com.personal.course.entity.HttpException;
-import com.personal.course.entity.Session;
-import com.personal.course.entity.User;
+import com.personal.course.entity.DO.Session;
 import com.personal.course.entity.Whitelist;
-import com.personal.course.service.AuthService;
 import com.personal.course.service.SessionService;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -14,7 +11,6 @@ import javax.inject.Inject;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

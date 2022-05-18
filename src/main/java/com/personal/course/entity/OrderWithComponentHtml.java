@@ -1,5 +1,8 @@
 package com.personal.course.entity;
 
+import com.personal.course.entity.DO.Course;
+import com.personal.course.entity.DO.Order;
+
 import java.time.Instant;
 
 public class OrderWithComponentHtml extends Order {

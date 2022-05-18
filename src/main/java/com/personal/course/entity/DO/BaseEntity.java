@@ -1,4 +1,6 @@
-package com.personal.course.entity;
+package com.personal.course.entity.DO;
+
+import com.personal.course.entity.Status;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;

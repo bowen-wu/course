@@ -2,9 +2,10 @@ package com.personal.course.service;
 
 import com.personal.course.common.utils.GetKeyFromUrlUtil;
 import com.personal.course.dao.VideoDao;
+import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
-import com.personal.course.entity.Video;
-import com.personal.course.entity.VideoVo;
+import com.personal.course.entity.Query.VideoQuery;
+import com.personal.course.entity.VO.VideoVO;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -21,11 +22,10 @@ public class VideoService {
         this.osClientService = osClientService;
     }
 
-    public VideoVo createVideo(VideoVo videoVo) {
-        Video pendingCreateVideo = new Video(videoVo);
+    public VideoVO createVideo(VideoQuery videoQuery) {
+        Video pendingCreateVideo = new Video(videoQuery);
         Video createdVideo = videoDao.save(pendingCreateVideo);
-        videoVo.setId(createdVideo.getId());
-        return videoVo;
+        return videoInDbConvertToVideoVO(createdVideo);
     }
 
     public void deleteVideo(Integer videoId) {
@@ -37,31 +37,32 @@ public class VideoService {
         videoDao.deleteById(videoId);
     }
 
-    public VideoVo updateVideo(Integer videoId, VideoVo videoVo) {
+    public VideoVO updateVideo(Integer videoId, VideoQuery videoQuery) {
         Video videoInDb = getVideoById(videoId);
-        videoInDb.setName(videoVo.getName());
-        String key = GetKeyFromUrlUtil.getKeyFromUrl(videoVo.getUrl());
+        videoInDb.setName(videoQuery.getName());
+        String key = GetKeyFromUrlUtil.getKeyFromUrl(videoQuery.getUrl());
         if (!key.equals(videoInDb.getKey())) {
             osClientService.deleteObject(videoInDb.getKey());
         }
         videoInDb.setKey(key);
-        videoInDb.setDescription(videoVo.getDescription());
+        videoInDb.setDescription(videoQuery.getDescription());
         videoInDb.setUpdatedOn(Instant.now());
         Video updatedVideo = videoDao.save(videoInDb);
-        return convertToVideoVoFromVideo(updatedVideo);
+        return videoInDbConvertToVideoVO(updatedVideo);
     }
 
-    private VideoVo convertToVideoVoFromVideo(Video video) {
-        String videoUrl = osClientService.generateSignUrl(video.getKey());
-        return new VideoVo(video, videoUrl);
+    public VideoVO getVideoVoById(Integer videoId) {
+        Video videoInDb = getVideoById(videoId);
+        return videoInDbConvertToVideoVO(videoInDb);
+    }
+
+    public VideoVO videoInDbConvertToVideoVO(Video videoInDb) {
+        VideoVO videoVO = new VideoVO(videoInDb);
+        videoVO.setUrl(osClientService.generateSignUrl(videoInDb.getKey()));
+        return videoVO;
     }
 
     private Video getVideoById(Integer videoId) {
         return videoDao.findById(videoId).orElseThrow(() -> HttpException.notFound("该视频Id：" + videoId + "不合法!"));
-    }
-
-    public VideoVo getVideoVoById(Integer videoId) {
-        Video video = videoDao.findById(videoId).orElseThrow(() -> HttpException.notFound("该视频Id：" + videoId + "不合法!"));
-        return convertToVideoVoFromVideo(video);
     }
 }

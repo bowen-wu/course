@@ -1,4 +1,4 @@
-package com.personal.course.entity;
+package com.personal.course.entity.DO;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

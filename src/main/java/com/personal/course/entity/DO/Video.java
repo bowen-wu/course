@@ -1,6 +1,8 @@
-package com.personal.course.entity;
+package com.personal.course.entity.DO;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.personal.course.common.utils.GetKeyFromUrlUtil;
+import com.personal.course.entity.Query.VideoQuery;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -10,15 +12,17 @@ import javax.persistence.Table;
 public class Video extends BaseEntity {
     private String name;
     private String description;
+
+    @JsonIgnore
     private String key;
 
     public Video() {
     }
 
-    public Video(VideoVo videoVo) {
-        this.name = videoVo.getName();
-        this.key = GetKeyFromUrlUtil.getKeyFromUrl(videoVo.getUrl());
-        this.description = videoVo.getDescription();
+    public Video(VideoQuery videoQuery) {
+        this.name = videoQuery.getName();
+        this.key = GetKeyFromUrlUtil.getKeyFromUrl(videoQuery.getUrl());
+        this.description = videoQuery.getDescription();
     }
 
     public String getName() {

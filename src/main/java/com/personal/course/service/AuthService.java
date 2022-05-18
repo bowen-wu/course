@@ -1,8 +1,8 @@
 package com.personal.course.service;
 
 import com.personal.course.dao.UserDao;
+import com.personal.course.entity.DO.User;
 import com.personal.course.entity.HttpException;
-import com.personal.course.entity.User;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

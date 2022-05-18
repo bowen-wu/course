@@ -1,6 +1,6 @@
 package com.personal.course.dao;
 
-import com.personal.course.entity.Session;
+import com.personal.course.entity.DO.Session;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

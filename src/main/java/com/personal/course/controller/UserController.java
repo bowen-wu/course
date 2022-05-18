@@ -3,7 +3,7 @@ package com.personal.course.controller;
 import com.personal.course.annotation.Admin;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;
-import com.personal.course.entity.User;
+import com.personal.course.entity.DO.User;
 import com.personal.course.service.AuthService;
 import com.personal.course.service.UserService;
 import org.springframework.data.domain.Sort.Direction;

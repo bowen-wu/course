@@ -1,9 +1,9 @@
 package com.personal.course.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.personal.course.entity.DO.User;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
-import com.personal.course.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

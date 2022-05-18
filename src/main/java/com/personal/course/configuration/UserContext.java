@@ -1,6 +1,6 @@
 package com.personal.course.configuration;
 
-import com.personal.course.entity.User;
+import com.personal.course.entity.DO.User;
 
 public class UserContext {
     private static ThreadLocal<User> currentUser = new ThreadLocal<>();

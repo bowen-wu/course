@@ -1,7 +1,7 @@
 package com.personal.course.service;
 
 import com.personal.course.dao.SessionDao;
-import com.personal.course.entity.Session;
+import com.personal.course.entity.DO.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

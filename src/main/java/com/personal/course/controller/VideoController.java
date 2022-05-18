@@ -1,11 +1,12 @@
 package com.personal.course.controller;
 
 import com.personal.course.annotation.ManagementCourse;
+import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
+import com.personal.course.entity.Query.VideoQuery;
 import com.personal.course.entity.Response;
-import com.personal.course.entity.Video;
-import com.personal.course.entity.VideoVo;
+import com.personal.course.entity.VO.VideoVO;
 import com.personal.course.service.OSClientService;
 import com.personal.course.service.VideoService;
 import org.springframework.data.domain.Sort.Direction;
@@ -98,17 +99,17 @@ public class VideoController {
      */
     @PostMapping("/video")
     @ManagementCourse
-    public Response<VideoVo> createVideo(@RequestBody VideoVo videoVo, HttpServletResponse response) {
-        cleanUp(videoVo);
+    public Response<VideoVO> createVideo(@RequestBody com.personal.course.entity.Query.VideoQuery videoQuery, HttpServletResponse response) {
+        cleanUp(videoQuery);
         response.setStatus(HttpStatus.CREATED.value());
-        return Response.success(videoService.createVideo(videoVo));
+        return Response.success(videoService.createVideo(videoQuery));
     }
 
-    private void cleanUp(VideoVo videoVo) {
-        if (videoVo.getName() == null) {
+    private void cleanUp(VideoQuery videoQuery) {
+        if (videoQuery.getName() == null) {
             throw HttpException.badRequest("视频名称不能为空");
         }
-        if (videoVo.getUrl() == null) {
+        if (videoQuery.getUrl() == null) {
             throw HttpException.badRequest("视频地址不能为空");
         }
     }
@@ -236,9 +237,9 @@ public class VideoController {
      */
     @PatchMapping("/video/{id}")
     @ManagementCourse
-    public Response<VideoVo> updateVideo(@PathVariable("id") Integer videoId, @RequestBody VideoVo videoVo) {
-        cleanUp(videoVo);
-        return Response.success(videoService.updateVideo(videoId, videoVo));
+    public Response<VideoVO> updateVideo(@PathVariable("id") Integer videoId, @RequestBody VideoQuery videoQuery) {
+        cleanUp(videoQuery);
+        return Response.success(videoService.updateVideo(videoId, videoQuery));
     }
 
     /**
@@ -300,7 +301,7 @@ public class VideoController {
      */
     @GetMapping("/video/{id}")
     @ManagementCourse
-    public Response<VideoVo> getVideoById(@PathVariable("id") Integer videoId) {
+    public Response<VideoVO> getVideoById(@PathVariable("id") Integer videoId) {
         return Response.success(videoService.getVideoVoById(videoId));
     }
 

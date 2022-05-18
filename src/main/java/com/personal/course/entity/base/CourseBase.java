@@ -1,14 +1,36 @@
-package com.personal.course.entity;
+package com.personal.course.entity.base;
 
-import java.util.List;
+import com.personal.course.entity.DO.BaseEntity;
+import com.personal.course.entity.Status;
 
-public class CourseVO {
+import java.time.Instant;
+
+public class CourseBase extends BaseEntity {
     private String name;
     private String description;
     private String teacherName;
     private String teacherDescription;
     private Integer price;
-    private List<Integer> videoIdList;
+
+    public CourseBase() {
+    }
+
+    public CourseBase(String name, String description, String teacherName, String teacherDescription, Integer price) {
+        this.name = name;
+        this.description = description;
+        this.teacherName = teacherName;
+        this.teacherDescription = teacherDescription;
+        this.price = price;
+    }
+
+    public CourseBase(Integer id, Instant createdOn, Instant updatedOn, Status status, String name, String description, String teacherName, String teacherDescription, Integer price) {
+        super(id, createdOn, updatedOn, status);
+        this.name = name;
+        this.description = description;
+        this.teacherName = teacherName;
+        this.teacherDescription = teacherDescription;
+        this.price = price;
+    }
 
     public String getName() {
         return name;
@@ -48,13 +70,5 @@ public class CourseVO {
 
     public void setPrice(Integer price) {
         this.price = price;
-    }
-
-    public List<Integer> getVideoIdList() {
-        return videoIdList;
-    }
-
-    public void setVideoIdList(List<Integer> videoIdList) {
-        this.videoIdList = videoIdList;
     }
 }

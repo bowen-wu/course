@@ -2,10 +2,10 @@ package com.personal.course.service;
 
 import com.personal.course.dao.RoleDao;
 import com.personal.course.dao.UserDao;
+import com.personal.course.entity.DO.Role;
+import com.personal.course.entity.DO.User;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
-import com.personal.course.entity.Role;
-import com.personal.course.entity.User;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;

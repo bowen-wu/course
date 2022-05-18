@@ -4,8 +4,8 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.personal.course.configuration.UserContext;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.Response;
-import com.personal.course.entity.Session;
-import com.personal.course.entity.User;
+import com.personal.course.entity.DO.Session;
+import com.personal.course.entity.DO.User;
 import com.personal.course.service.AuthService;
 import com.personal.course.service.SessionService;
 import org.springframework.http.HttpStatus;
@@ -57,7 +57,13 @@ public class AuthController {
      *     HTTP/1.1 201 Created
      *     {
      *         "id": 123,
-     *         "username": "Alice"
+     *         "username": "Alice",
+     *         "roles": [
+     *              {
+     *                  name: "student" // 角色名称
+     *                  id: 12
+     *              }
+     *         ]
      *     }
      *
      * @apiError 400 Bad Request 若用户的请求包含错误
@@ -119,8 +125,14 @@ public class AuthController {
      *     {
      *       "user": {
      *           "id": 123,
-     *           "username": "Alice"
-     *       }
+     *           "username": "Alice",
+     *           "roles": [
+     *               {
+     *                   name: "student" // 角色名称
+     *                   id: 12
+     *               }
+     *           ]
+     *        }
      *     }
      *
      * @apiError 400 Bad Request 若用户的请求包含错误
@@ -178,7 +190,13 @@ public class AuthController {
      *     {
      *       "user": {
      *           "id": 123,
-     *           "username": "Alice"
+     *           "username": "Alice",
+     *           "roles": [
+     *               {
+     *                   name: "student" // 角色名称
+     *                   id: 12
+     *               }
+     *           ]
      *       }
      *     }
      * @apiError 401 Unauthorized 若用户未登录
