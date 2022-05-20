@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.personal.course.entity.Query.VideoQuery;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
+import com.personal.course.entity.VO.UsernameAndPassword;
 import com.personal.course.entity.VO.VideoVO;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
@@ -106,7 +107,7 @@ class VideoIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void return403WhenForbidden() throws IOException, InterruptedException, URISyntaxException {
         // student
-        String studentCookie = getUserCookie("username=student&password=student");
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
         VideoQuery pendingCreateVideo = createVideo(testUrl);
 
         // create

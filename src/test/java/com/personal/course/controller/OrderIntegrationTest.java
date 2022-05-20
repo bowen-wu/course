@@ -7,6 +7,7 @@ import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.TradePayResponse;
 import com.personal.course.entity.VO.CourseVO;
+import com.personal.course.entity.VO.UsernameAndPassword;
 import com.personal.course.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         String testFormComponentHtml = mockData(Status.PAID);
 
         // student userId = 1
-        String studentCookie = getUserCookie("username=student&password=student");
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
 
         // 下订单 => 201 + orderInfo
         Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
@@ -82,7 +83,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         // 创建一个课程用于下订单
         String testFormComponentHtml = mockData(Status.UNPAID, Status.CLOSED);
 
-        String studentCookie = getUserCookie("username=student&password=student");
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
         Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
         Integer createdOrderId = orderWithComponentHtmlResponse.getData().getId();
 
@@ -112,7 +113,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void return404WhenPlaceOrGetOrDeleteOrder() throws IOException, InterruptedException {
-        String studentCookie = getUserCookie("username=student&password=student");
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
         HttpResponse<String> res = post("/order/99", "", HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
         assertEquals(404, res.statusCode());
 
@@ -128,14 +129,14 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         String testFormComponentHtml = mockData(Status.PAID);
 
         // student userId = 1
-        String studentCookie = getUserCookie("username=student&password=student");
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
 
         // 下订单 => 201 + orderInfo
         Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
 
         Integer createdOrderId = orderWithComponentHtmlResponse.getData().getId();
 
-        String teacherCookie = getUserCookie("username=teacher&password=teacher");
+        String teacherCookie = getUserCookie(new UsernameAndPassword("teacher", "teacher"));
 
         HttpResponse<String> res = get("/order/" + createdOrderId, HttpHeaders.COOKIE, teacherCookie);
         assertEquals(403, res.statusCode());
@@ -151,7 +152,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
     public void cannotCancelOrderWhenStatusNoUnpaid() throws IOException, InterruptedException {
         String testFormComponentHtml = mockData(Status.CLOSED);
 
-        String studentCookie = getUserCookie("username=student&password=student");
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
         Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
         Integer createdOrderId = orderWithComponentHtmlResponse.getData().getId();
 

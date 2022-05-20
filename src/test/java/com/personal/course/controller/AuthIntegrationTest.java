@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.personal.course.entity.DO.User;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
+import com.personal.course.entity.VO.UsernameAndPassword;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,8 +22,8 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
         assertEquals(401, response.statusCode());
 
         // 注册 POST /user => 201
-        String usernameAndPassword = "username=jackson&password=jackson";
-        response = post("/user", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        UsernameAndPassword usernameAndPassword = new UsernameAndPassword("jackson", "jackson");
+        response = post("/user", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(201, response.statusCode());
         Response<User> registerResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
         });
@@ -30,7 +31,7 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Status.OK, registerResponse.getData().getStatus());
 
         // 登录 POST /session => 200 + User
-        response = post("/session", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        response = post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
         assertEquals(200, response.statusCode());
         Response<User> loginResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
@@ -60,35 +61,30 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void return404WhenUnregisteredUserLogin() throws IOException, InterruptedException {
-        String usernameAndPassword = "username=jackson&password=jackson";
-        HttpResponse<String> response = post("/session", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        UsernameAndPassword usernameAndPassword = new UsernameAndPassword("jackson", "jackson");
+        HttpResponse<String> response = post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(404, response.statusCode());
     }
 
     @Test
     public void return409WhenDuplicateUsername() throws IOException, InterruptedException {
-        String usernameAndPassword = "username=jackson&password=jackson";
-        HttpResponse<String> response = post("/user", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        UsernameAndPassword usernameAndPassword = new UsernameAndPassword("jackson", "jackson");
+        HttpResponse<String> response = post("/user", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(201, response.statusCode());
 
-        response = post("/user", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        response = post("/user", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(409, response.statusCode());
     }
 
     @Test
     public void return400WhenRegisterOrLoginUsernameOrPasswordInvalid() throws IOException, InterruptedException {
-        String usernameAndPassword = "username=jack&password=jackson";
-        HttpResponse<String> response = post("/user", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        UsernameAndPassword usernameAndPassword = new UsernameAndPassword("jack", "jackson");
+        HttpResponse<String> response = post("/user", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(400, response.statusCode());
 
-        response = post("/session", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-        assertEquals(400, response.statusCode());
-
-        usernameAndPassword = "username=jackson&password=jacks";
-        response = post("/user", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-        assertEquals(400, response.statusCode());
-
-        response = post("/session", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        usernameAndPassword.setUsername("jackson");
+        usernameAndPassword.setUsername("jacks");
+        response = post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(400, response.statusCode());
     }
 }

@@ -2,18 +2,19 @@ package com.personal.course.controller;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.personal.course.configuration.UserContext;
-import com.personal.course.entity.HttpException;
-import com.personal.course.entity.Response;
 import com.personal.course.entity.DO.Session;
 import com.personal.course.entity.DO.User;
+import com.personal.course.entity.HttpException;
+import com.personal.course.entity.Response;
+import com.personal.course.entity.VO.UsernameAndPassword;
 import com.personal.course.service.AuthService;
 import com.personal.course.service.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -83,24 +84,24 @@ public class AuthController {
      *     }
      */
     /**
-     * @param username 用户名
-     * @param password 密码
+     * @param usernameAndPassword 用户名和密码
+     * @param response            response
      */
     @PostMapping("/user")
     @ResponseBody
-    public Response<User> register(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletResponse response) {
-        cleanParameter(username, password);
-        String encryptedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+    public Response<User> register(@RequestBody UsernameAndPassword usernameAndPassword, HttpServletResponse response) {
+        cleanParameter(usernameAndPassword);
+        String encryptedPassword = BCrypt.withDefaults().hashToString(12, usernameAndPassword.getPassword().toCharArray());
         User registerUser = new User();
-        registerUser.setUsername(username);
+        registerUser.setUsername(usernameAndPassword.getUsername());
         registerUser.setEncrypted_password(encryptedPassword);
         response.setStatus(HttpStatus.CREATED.value());
         return Response.success(authService.registerUser(registerUser));
     }
 
-    private void cleanParameter(String username, String password) {
+    private void cleanParameter(UsernameAndPassword usernameAndPassword) {
         // 清洗参数
-        if (username.length() < 6 || password.length() < 6) {
+        if (usernameAndPassword.getUsername().length() < 6 || usernameAndPassword.getPassword().length() < 6) {
             throw HttpException.badRequest("账号密码长度不够");
         }
     }
@@ -151,18 +152,18 @@ public class AuthController {
      *     }
      */
     /**
-     * @param username 用户名
-     * @param password 密码
+     * @param usernameAndPassword 用户名和密码
+     * @param response            response
      */
     @PostMapping("/session")
     @ResponseBody
-    public Response<User> login(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletResponse response) {
-        cleanParameter(username, password);
-        User userInDB = authService.getUserByUsername(username);
+    public Response<User> login(@RequestBody UsernameAndPassword usernameAndPassword, HttpServletResponse response) {
+        cleanParameter(usernameAndPassword);
+        User userInDB = authService.getUserByUsername(usernameAndPassword.getUsername());
         if (userInDB == null) {
             throw HttpException.notFound("该用户尚未注册！");
         }
-        if (BCrypt.verifyer().verify(password.toCharArray(), userInDB.getEncrypted_password()).verified) {
+        if (BCrypt.verifyer().verify(usernameAndPassword.getPassword().toCharArray(), userInDB.getEncrypted_password()).verified) {
             // 账号密码正确
             String cookieValue = UUID.randomUUID().toString();
             Cookie cookie = new Cookie(COOKIE_NAME, cookieValue);

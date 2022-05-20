@@ -6,6 +6,7 @@ import com.personal.course.entity.Query.CourseQuery;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.VO.CourseVO;
+import com.personal.course.entity.VO.UsernameAndPassword;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -80,7 +81,7 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void return403WhenAddModifyDeleteAndNotAuthorized() throws IOException, InterruptedException {
         // student
-        String studentCookie = getUserCookie("username=student&password=student");
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
         CourseQuery pendingCreateCourse = createCourse();
 
         // create

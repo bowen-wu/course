@@ -6,6 +6,7 @@ import com.personal.course.entity.DO.User;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
+import com.personal.course.entity.VO.UsernameAndPassword;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -68,8 +69,8 @@ class UserIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void return403WhenNotAdminRequest() throws IOException, InterruptedException {
         // getCookie
-        String studentCookie = getUserCookie("username=student&password=student");
-        String teacherCookie = getUserCookie("username=teacher&password=teacher");
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
+        String teacherCookie = getUserCookie(new UsernameAndPassword("teacher", "teacher"));
 
         HttpResponse<String> response = get("/user/1", HttpHeaders.COOKIE, studentCookie);
         assertEquals(403, response.statusCode());

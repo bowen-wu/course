@@ -8,6 +8,7 @@ import com.personal.course.entity.Query.VideoQuery;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.VO.CourseVO;
+import com.personal.course.entity.VO.UsernameAndPassword;
 import com.personal.course.entity.VO.VideoVO;
 import com.personal.course.service.OSClientService;
 import org.flywaydb.core.Flyway;
@@ -145,20 +146,20 @@ public abstract class AbstractIntegrationTest {
         assertEquals(errorMessage, response.getMessage());
     }
 
-    public String getUserCookie(String usernameAndPassword) throws IOException, InterruptedException {
+    public String getUserCookie(UsernameAndPassword usernameAndPassword) throws IOException, InterruptedException {
         return getCookieFromResponse(login(usernameAndPassword));
     }
 
     public String getAdminCookie() throws IOException, InterruptedException {
-        return getUserCookie("username=administrator&password=administrator");
+        return getUserCookie(new UsernameAndPassword("administrator", "administrator"));
     }
 
     public String getCookieFromResponse(HttpResponse<String> response) {
         return response.headers().allValues(HttpHeaders.SET_COOKIE).get(0);
     }
 
-    public HttpResponse<String> login(String usernameAndPassword) throws IOException, InterruptedException {
-        return post("/session", usernameAndPassword, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+    public HttpResponse<String> login(UsernameAndPassword usernameAndPassword) throws IOException, InterruptedException {
+        return post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
     }
 
     public HttpResponse<String> patch(String uri, String body, String... headers) throws IOException, InterruptedException {
