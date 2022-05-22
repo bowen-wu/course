@@ -91,19 +91,8 @@ public class AuthController {
     @ResponseBody
     public Response<User> register(@RequestBody UsernameAndPassword usernameAndPassword, HttpServletResponse response) {
         cleanParameter(usernameAndPassword);
-        String encryptedPassword = BCrypt.withDefaults().hashToString(12, usernameAndPassword.getPassword().toCharArray());
-        User registerUser = new User();
-        registerUser.setUsername(usernameAndPassword.getUsername());
-        registerUser.setEncrypted_password(encryptedPassword);
         response.setStatus(HttpStatus.CREATED.value());
-        return Response.success(authService.registerUser(registerUser));
-    }
-
-    private void cleanParameter(UsernameAndPassword usernameAndPassword) {
-        // 清洗参数
-        if (usernameAndPassword.getUsername().length() < 6 || usernameAndPassword.getPassword().length() < 6) {
-            throw HttpException.badRequest("账号密码长度不够");
-        }
+        return Response.success(authService.registerUser(usernameAndPassword));
     }
 
     /**
@@ -257,4 +246,12 @@ public class AuthController {
         response.addCookie(cookie);
         response.setStatus(HttpStatus.NO_CONTENT.value());
     }
+
+    private void cleanParameter(UsernameAndPassword usernameAndPassword) {
+        // 清洗参数
+        if (usernameAndPassword.getUsername().length() < 6 || usernameAndPassword.getPassword().length() < 6) {
+            throw HttpException.badRequest("账号密码长度不够");
+        }
+    }
+
 }

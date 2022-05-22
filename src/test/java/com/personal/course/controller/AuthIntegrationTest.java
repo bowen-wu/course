@@ -1,5 +1,6 @@
 package com.personal.course.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.personal.course.entity.DO.User;
 import com.personal.course.entity.Response;
@@ -57,6 +58,17 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
         // 检查登录状态 GET /session => 401
         response = get("/session", HttpHeaders.COOKIE, cookie);
         assertEquals(401, response.statusCode());
+    }
+
+    @Test
+    public void testDefaultRoleWhenRegisterUser() throws IOException, InterruptedException {
+        UsernameAndPassword usernameAndPassword = new UsernameAndPassword("jackson", "jackson");
+        HttpResponse<String> response = post("/user", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        assertEquals(201, response.statusCode());
+        Response<User> registerResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
+        assertEquals(1, registerResponse.getData().getRoles().size());
+        assertEquals("student", registerResponse.getData().getRoles().get(0).getName());
     }
 
     @Test
