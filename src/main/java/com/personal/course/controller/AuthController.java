@@ -2,6 +2,8 @@ package com.personal.course.controller;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.personal.course.configuration.UserContext;
+import com.personal.course.dao.CustomConfigDao;
+import com.personal.course.entity.DO.CustomConfig;
 import com.personal.course.entity.DO.Session;
 import com.personal.course.entity.DO.User;
 import com.personal.course.entity.HttpException;
@@ -32,11 +34,13 @@ import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 public class AuthController {
     private final AuthService authService;
     private final SessionService sessionService;
+    private final CustomConfigDao customConfigDao;
 
     @Inject
-    public AuthController(AuthService authService, SessionService sessionService) {
+    public AuthController(AuthService authService, SessionService sessionService, CustomConfigDao customConfigDao) {
         this.authService = authService;
         this.sessionService = sessionService;
+        this.customConfigDao = customConfigDao;
     }
 
     /**
@@ -156,6 +160,18 @@ public class AuthController {
             // 账号密码正确
             String cookieValue = UUID.randomUUID().toString();
             Cookie cookie = new Cookie(COOKIE_NAME, cookieValue);
+            CustomConfig customConfig = customConfigDao.findByName("cookieMaxAge").orElseThrow(() -> {
+                // TODO: 配置报错信息
+                throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 cookieMaxAge 配置");
+            });
+            try {
+                cookie.setMaxAge(Integer.parseInt(customConfig.getValue()));
+            } catch (NumberFormatException e) {
+                // TODO: 配置报错信息
+                e.printStackTrace();
+                // 默认值：30min
+                cookie.setMaxAge(1800);
+            }
             response.addCookie(cookie);
 
             Session session = new Session(cookieValue, userInDB);
@@ -235,11 +251,7 @@ public class AuthController {
         if (UserContext.getUser() == null) {
             throw HttpException.unauthorized("未登录");
         }
-        Arrays.stream(request.getCookies())
-                .filter(item -> item.getName().equals(COOKIE_NAME))
-                .map(Cookie::getValue)
-                .findFirst()
-                .ifPresent(sessionService::deleteSessionByCookie);
+        Arrays.stream(request.getCookies()).filter(item -> item.getName().equals(COOKIE_NAME)).map(Cookie::getValue).findFirst().ifPresent(sessionService::deleteSessionByCookie);
 
         Cookie cookie = new Cookie(COOKIE_NAME, null);
         cookie.setMaxAge(0);

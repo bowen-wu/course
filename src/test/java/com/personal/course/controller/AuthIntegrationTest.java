@@ -6,12 +6,15 @@ import com.personal.course.entity.DO.User;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.VO.UsernameAndPassword;
+import org.apache.tomcat.util.http.parser.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -69,6 +72,14 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
         });
         assertEquals(1, registerResponse.getData().getRoles().size());
         assertEquals("student", registerResponse.getData().getRoles().get(0).getName());
+    }
+
+    @Test
+    public void testCookieSetMaxAge() throws IOException, InterruptedException {
+        UsernameAndPassword usernameAndPassword = new UsernameAndPassword("student", "student");
+        HttpResponse<String> response = post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        HttpCookie httpCookie = HttpCookie.parse(response.headers().allValues("set-cookie").get(0)).get(0);
+        assertEquals(1800, httpCookie.getMaxAge());
     }
 
     @Test

@@ -50,7 +50,7 @@ mvn flyway:migrate
 
 ```
 docker run -p 5432:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_USER=root -e POSTGRES_DB=course -v /custom/mount:/var/lib/postgresql/data -d postgres
-docker run -p 5432:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_USER=root -e POSTGRES_DB=course -v /custom/mount:/var/lib/postgresql/data -d postgres
+docker run -p 5433:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_USER=root -e POSTGRES_DB=course -d postgres
 ```
 
 ### Dockerfile
