@@ -40,10 +40,10 @@ public class AuthInterceptor implements HandlerInterceptor {
                     .ifPresent(UserContext::setUser);
         }
         List<Whitelist> whitelistList = Arrays.asList(
-                Whitelist.of("/api/v1/session", "POST"),
-                Whitelist.of("/api/v1/session", "GET"),
                 Whitelist.of("/api/v1/test", "GET"),
                 Whitelist.of("/api/v1/test", "POST"),
+                Whitelist.of("/api/v1/session", "POST"),
+                Whitelist.of("/api/v1/session", "GET"),
                 Whitelist.of("/api/v1/user", "POST"));
         if (UserContext.getUser() == null) {
             whitelistList.stream()

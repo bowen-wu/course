@@ -45,7 +45,7 @@ public class AuthController {
      * @apiGroup Auth Management
      *
      * @apiHeader {String} Accept application/json
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} Content-Type application/json
      *
      * @apiParam {String} username 用户名
      * @apiParam {String} password 密码
@@ -112,7 +112,7 @@ public class AuthController {
      * @apiGroup Auth Management
      *
      * @apiHeader {String} Accept application/json
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} Content-Type application/json
      *
      * @apiParam {String} username 用户名
      * @apiParam {String} password 密码
