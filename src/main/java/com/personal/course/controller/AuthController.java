@@ -1,10 +1,6 @@
 package com.personal.course.controller;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.personal.course.configuration.UserContext;
-import com.personal.course.dao.CustomConfigDao;
-import com.personal.course.entity.DO.CustomConfig;
-import com.personal.course.entity.DO.Session;
 import com.personal.course.entity.DO.User;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.Response;
@@ -25,7 +21,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
-import java.util.UUID;
 
 import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 
@@ -34,13 +29,11 @@ import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 public class AuthController {
     private final AuthService authService;
     private final SessionService sessionService;
-    private final CustomConfigDao customConfigDao;
 
     @Inject
-    public AuthController(AuthService authService, SessionService sessionService, CustomConfigDao customConfigDao) {
+    public AuthController(AuthService authService, SessionService sessionService) {
         this.authService = authService;
         this.sessionService = sessionService;
-        this.customConfigDao = customConfigDao;
     }
 
     /**
@@ -152,35 +145,7 @@ public class AuthController {
     @ResponseBody
     public Response<User> login(@RequestBody UsernameAndPassword usernameAndPassword, HttpServletResponse response) {
         cleanParameter(usernameAndPassword);
-        User userInDB = authService.getUserByUsername(usernameAndPassword.getUsername());
-        if (userInDB == null) {
-            throw HttpException.notFound("该用户尚未注册！");
-        }
-        if (BCrypt.verifyer().verify(usernameAndPassword.getPassword().toCharArray(), userInDB.getEncrypted_password()).verified) {
-            // 账号密码正确
-            String cookieValue = UUID.randomUUID().toString();
-            Cookie cookie = new Cookie(COOKIE_NAME, cookieValue);
-            CustomConfig customConfig = customConfigDao.findByName("cookieMaxAge").orElseThrow(() -> {
-                // TODO: 配置报错信息
-                throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 cookieMaxAge 配置");
-            });
-            try {
-                cookie.setMaxAge(Integer.parseInt(customConfig.getValue()));
-            } catch (NumberFormatException e) {
-                // TODO: 配置报错信息
-                e.printStackTrace();
-                // 默认值：30min
-                cookie.setMaxAge(1800);
-            }
-            response.addCookie(cookie);
-
-            Session session = new Session(cookieValue, userInDB);
-            sessionService.deleteSessionByUserId(userInDB.getId());
-            sessionService.save(session);
-            return Response.success(userInDB);
-        } else {
-            throw HttpException.badRequest("密码错误！");
-        }
+        return Response.success(authService.login(usernameAndPassword, response));
     }
 
     /**
@@ -265,5 +230,4 @@ public class AuthController {
             throw HttpException.badRequest("账号密码长度不够");
         }
     }
-
 }
