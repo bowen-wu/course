@@ -1,5 +1,6 @@
 package com.personal.course.configuration;
 
+import com.personal.course.service.CookieService;
 import com.personal.course.service.SessionService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -11,15 +12,17 @@ import javax.inject.Inject;
 @Configuration
 public class Config implements WebMvcConfigurer {
     private final SessionService sessionService;
+    private final CookieService cookieService;
 
     @Inject
-    public Config(SessionService sessionService) {
+    public Config(SessionService sessionService, CookieService cookieService) {
         this.sessionService = sessionService;
+        this.cookieService = cookieService;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new AuthInterceptor(sessionService));
+        registry.addInterceptor(new AuthInterceptor(sessionService, cookieService));
     }
 
     @Override

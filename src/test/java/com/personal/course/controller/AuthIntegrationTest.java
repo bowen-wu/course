@@ -7,6 +7,8 @@ import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.VO.UsernameAndPassword;
 import org.apache.tomcat.util.http.parser.Cookie;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,9 +16,23 @@ import org.springframework.http.MediaType;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.http.HttpResponse;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
 
+import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuthIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -78,8 +94,26 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
     public void testCookieSetMaxAge() throws IOException, InterruptedException {
         UsernameAndPassword usernameAndPassword = new UsernameAndPassword("student", "student");
         HttpResponse<String> response = post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        HttpCookie httpCookie = HttpCookie.parse(response.headers().allValues("set-cookie").get(0)).get(0);
+        HttpCookie httpCookie = HttpCookie.parse(response.headers().allValues(HttpHeaders.SET_COOKIE).get(0)).get(0);
         assertEquals(1800, httpCookie.getMaxAge());
+    }
+
+    @Test
+    public void testCookieUpdateWhenRequest() throws IOException, InterruptedException, ParseException {
+        // Tue, 24-May-2022 07:25:36 GMT
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd-MMM-yyyy HH:mm:ss zzz");
+        UsernameAndPassword usernameAndPassword = new UsernameAndPassword("student", "student");
+        HttpResponse<String> response = post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        String expiresValue = Arrays.stream(response.headers().allValues(HttpHeaders.SET_COOKIE).get(0).split("; ")).filter(attr -> attr.startsWith("Expires")).collect(Collectors.toList()).get(0).split("=")[1];
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse(expiresValue, formatter);
+        String cookie = response.headers().allValues(HttpHeaders.SET_COOKIE).get(0);
+
+        sleep(5 * 1000);
+        response = get("/session", HttpHeaders.COOKIE, cookie);
+        String updateExpiresValue = Arrays.stream(response.headers().allValues(HttpHeaders.SET_COOKIE).get(0).split("; ")).filter(attr -> attr.startsWith("Expires")).collect(Collectors.toList()).get(0).split("=")[1];
+        ZonedDateTime updateZonedDateTime = ZonedDateTime.parse(updateExpiresValue, formatter);
+
+        assertTrue(Duration.between(zonedDateTime, updateZonedDateTime).getSeconds() >= 5);
     }
 
     @Test

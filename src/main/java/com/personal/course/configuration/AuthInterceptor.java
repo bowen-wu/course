@@ -3,6 +3,7 @@ package com.personal.course.configuration;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.DO.Session;
 import com.personal.course.entity.Whitelist;
+import com.personal.course.service.CookieService;
 import com.personal.course.service.SessionService;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -18,15 +19,17 @@ public class AuthInterceptor implements HandlerInterceptor {
     public static String COOKIE_NAME = "COURSE_APP_SESSION_ID";
 
     private final SessionService sessionService;
+    private final CookieService cookieService;
 
     @Inject
-    public AuthInterceptor(SessionService sessionService) {
+    public AuthInterceptor(SessionService sessionService, CookieService cookieService) {
         this.sessionService = sessionService;
+        this.cookieService = cookieService;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        if(!request.getRequestURI().startsWith("/api/v1")) {
+        if (!request.getRequestURI().startsWith("/api/v1")) {
             return true;
         }
         // get User & save user info to ThreadLocal
@@ -35,6 +38,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                     .filter(item -> item.getName().equals(COOKIE_NAME))
                     .map(Cookie::getValue)
                     .findFirst()
+                    .map(cookieValue -> cookieService.updateCookieExpire(cookieValue, response))
                     .flatMap(sessionService::getSessionByCookie)
                     .map(Session::getUser)
                     .ifPresent(UserContext::setUser);

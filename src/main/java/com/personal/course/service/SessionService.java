@@ -33,5 +33,4 @@ public class SessionService {
     public void deleteSessionByCookie(String cookie) {
         sessionDao.deleteByCookie(cookie);
     }
-
 }
