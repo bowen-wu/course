@@ -71,7 +71,7 @@ public class CourseService {
         return courseVo;
     }
 
-    public CourseVO updateCourse(Integer courseId, CourseQuery course, Integer userId) {
+    public CourseVO updateCourse(Integer courseId, CourseQuery course) {
         Course courseInDb = getCourseById(courseId);
         courseInDb.setName(course.getName());
         courseInDb.setDescription(course.getDescription());
@@ -99,7 +99,7 @@ public class CourseService {
             course.setName(search);
             coursePage = courseDao.findAll(Example.of(course), pageRequest);
         }
-        return PageResponse.of(pageNum, pageSize, coursePage.getTotalPages(), "OK", coursePage.getContent().stream().map(this::courseInDbConvertToCourseVO).collect(toList()));
+        return PageResponse.of(pageNum, pageSize, (int) coursePage.getTotalElements(), "OK", coursePage.getContent().stream().map(this::courseInDbConvertToCourseVO).collect(toList()));
     }
 
     private CourseVO courseInDbConvertToCourseVO(Course courseInDb) {

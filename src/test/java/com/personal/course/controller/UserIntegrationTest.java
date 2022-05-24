@@ -100,7 +100,7 @@ class UserIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(2, userListPageResponse.getPageNum());
         assertEquals(1, userListPageResponse.getPageSize());
-        assertEquals(3, userListPageResponse.getTotalPage());
+        assertEquals(3, userListPageResponse.getTotal());
         assertEquals(1, userListPageResponse.getData().size());
         assertEquals("teacher", userListPageResponse.getData().get(0).getUsername());
         assertEquals(2, userListPageResponse.getData().get(0).getId());
@@ -115,7 +115,7 @@ class UserIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(1, userListPageResponse.getPageNum());
         assertEquals(1, userListPageResponse.getPageSize());
-        assertEquals(3, userListPageResponse.getTotalPage());
+        assertEquals(3, userListPageResponse.getTotal());
         assertEquals(1, userListPageResponse.getData().size());
         assertEquals(3, userListPageResponse.getData().get(0).getId());
         assertEquals("administrator", userListPageResponse.getData().get(0).getUsername());
@@ -130,7 +130,7 @@ class UserIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(1, userListPageResponse.getPageNum());
         assertEquals(3, userListPageResponse.getPageSize());
-        assertEquals(1, userListPageResponse.getTotalPage());
+        assertEquals(2, userListPageResponse.getTotal());
         assertEquals(2, userListPageResponse.getData().size());
         assertEquals(Arrays.asList(1, 2), userListPageResponse.getData().stream().map(User::getId).collect(toList()));
         assertEquals(Arrays.asList("student", "teacher"), userListPageResponse.getData().stream().map(User::getUsername).collect(toList()));

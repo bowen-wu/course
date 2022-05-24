@@ -1,7 +1,7 @@
 package com.personal.course.configuration;
 
-import com.personal.course.entity.HttpException;
 import com.personal.course.entity.DO.Session;
+import com.personal.course.entity.HttpException;
 import com.personal.course.entity.Whitelist;
 import com.personal.course.service.CookieService;
 import com.personal.course.service.SessionService;

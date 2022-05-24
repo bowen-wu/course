@@ -366,7 +366,7 @@ public class VideoController {
      *
      * @apiParamExample Request-Example:
      *            GET /api/v1/video?pageSize=10&pageNum=1&orderBy=id&orderType=Desc&search=21天
-     * @apiSuccess {Number} totalPage 总页数
+     * @apiSuccess {Number} total 总数
      * @apiSuccess {Number} pageNum 当前页码，从1开始
      * @apiSuccess {Number} pageSize 每页包含多少个视频
      * @apiSuccess {Video[]} data 视频列表
@@ -374,7 +374,7 @@ public class VideoController {
      * @apiSuccessExample Success-Response:
      *     HTTP/1.1 200 OK
      *     {
-     *       "totalPage": 100,
+     *       "total": 100,
      *       "pageSize": 10,
      *       "pageNum": 1,
      *       "data": [

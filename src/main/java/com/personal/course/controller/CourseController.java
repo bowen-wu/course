@@ -60,7 +60,7 @@ public class CourseController {
      *
      * @apiParamExample Request-Example:
      *            GET /api/v1/course?pageSize=10&pageNum=1&orderBy=price&orderType=Desc&search=21天&userId=1
-     * @apiSuccess {Number} totalPage 总页数
+     * @apiSuccess {Number} total 总数
      * @apiSuccess {Number} pageNum 当前页码，从1开始
      * @apiSuccess {Number} pageSize 每页包含多少个课程
      * @apiSuccess {Course[]} data 课程列表
@@ -68,7 +68,7 @@ public class CourseController {
      * @apiSuccessExample Success-Response:
      *     HTTP/1.1 200 OK
      *     {
-     *       "totalPage": 100,
+     *       "total": 100,
      *       "pageSize": 10,
      *       "pageNum": 1,
      *       "data": [
@@ -338,6 +338,6 @@ public class CourseController {
     @ManagementCourse
     public Response<CourseVO> updateCourse(@PathVariable("id") Integer courseId, @RequestBody CourseQuery course) {
         cleanUp(course);
-        return Response.success(courseService.updateCourse(courseId, course, UserContext.getUser().getId()));
+        return Response.success(courseService.updateCourse(courseId, course));
     }
 }

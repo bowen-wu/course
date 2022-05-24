@@ -1,14 +1,10 @@
 package com.personal.course.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.personal.course.entity.DO.User;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.VO.UsernameAndPassword;
-import org.apache.tomcat.util.http.parser.Cookie;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -16,18 +12,11 @@ import org.springframework.http.MediaType;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.http.HttpResponse;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;

@@ -232,7 +232,7 @@ public class OrderController {
      *
      * @apiParamExample Request-Example:
      *            GET /api/v1/order?pageSize=10&pageNum=1&orderBy=price&orderType=Desc&search=21天
-     * @apiSuccess {Number} totalPage 总页数
+     * @apiSuccess {Number} total 总数
      * @apiSuccess {Number} pageNum 当前页码，从1开始
      * @apiSuccess {Number} pageSize 每页包含多少个订单
      * @apiSuccess {Order[]} data 订单列表
@@ -240,7 +240,7 @@ public class OrderController {
      * @apiSuccessExample Success-Response:
      *     HTTP/1.1 200 OK
      *     {
-     *       "totalPage": 100,
+     *       "total": 100,
      *       "pageSize": 10,
      *       "pageNum": 1,
      *       "data": [

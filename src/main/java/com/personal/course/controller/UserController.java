@@ -199,7 +199,7 @@ public class UserController {
      * @apiSuccessExample Success-Response:
      *     HTTP/1.1 200 OK
      *      {
-     *        "totalPage": 100,
+     *        "total": 100,
      *        "pageSize": 10,
      *        "pageNum": 1,
      *        "data": [

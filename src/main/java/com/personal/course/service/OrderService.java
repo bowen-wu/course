@@ -91,7 +91,7 @@ public class OrderService {
         }
         Page<Order> orderPage = orderDao.findAll(orderExample, pageRequest);
         List<Order> orderList = orderPage.getContent().stream().map(this::queryOrderPayStatus).collect(Collectors.toList());
-        return PageResponse.of(pageNum, pageSize, orderPage.getTotalPages(), "OK", orderList);
+        return PageResponse.of(pageNum, pageSize, (int) orderPage.getTotalElements(), "OK", orderList);
     }
 
     public Order closeOrder(Integer orderId) {

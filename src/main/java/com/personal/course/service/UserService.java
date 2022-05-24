@@ -61,6 +61,6 @@ public class UserService {
 
             userPage = userDao.findAll(Example.of(searchUser, exampleMatcher), pageable);
         }
-        return PageResponse.of(userPage.getNumber() + 1, userPage.getSize(), userPage.getTotalPages(), "OK", userPage.get().collect(toList()));
+        return PageResponse.of(userPage.getNumber() + 1, userPage.getSize(), (int) userPage.getTotalElements(), "OK", userPage.get().collect(toList()));
     }
 }
