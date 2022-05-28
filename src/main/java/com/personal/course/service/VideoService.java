@@ -1,15 +1,26 @@
 package com.personal.course.service;
 
 import com.personal.course.common.utils.GetKeyFromUrlUtil;
+import com.personal.course.configuration.UserContext;
 import com.personal.course.dao.VideoDao;
+import com.personal.course.entity.DO.Course;
+import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
+import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Query.VideoQuery;
 import com.personal.course.entity.VO.VideoVO;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class VideoService {
@@ -64,5 +75,18 @@ public class VideoService {
 
     private Video getVideoById(Integer videoId) {
         return videoDao.findById(videoId).orElseThrow(() -> HttpException.notFound("该视频Id：" + videoId + "不合法!"));
+    }
+
+    public PageResponse<Video> getVideoList(Integer pageNum, Integer pageSize, String orderType, Direction orderBy, String search) {
+        PageRequest pageRequest = PageRequest.of(pageNum - 1, pageSize, orderBy, orderType);
+        Page<Video> videoPage;
+        if (search == null) {
+            videoPage = videoDao.findAll(pageRequest);
+        } else {
+            Video video = new Video();
+            video.setName(search);
+            videoPage = videoDao.findAll(Example.of(video), pageRequest);
+        }
+        return PageResponse.of(pageNum, pageSize, (int) videoPage.getTotalElements(), "OK", videoPage.getContent());
     }
 }

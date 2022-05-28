@@ -26,6 +26,11 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static com.personal.course.entity.PageResponse.DEFAULT_ORDER_BY;
+import static com.personal.course.entity.PageResponse.DEFAULT_ORDER_TYPE;
+import static com.personal.course.entity.PageResponse.DEFAULT_PAGE_NUM;
+import static com.personal.course.entity.PageResponse.DEFAULT_PAGE_SIZE;
+
 @RestController
 @RequestMapping("/api/v1")
 public class VideoController {
@@ -358,7 +363,7 @@ public class VideoController {
      *
      * @apiHeader {String} Accept application/json
      *
-     * @apiParam {String} [search] 搜索关键字
+     * @apiParam {String} [search] 搜索关键字 - 视频名称
      * @apiParam {Number} [pageSize] 每页包含多少个视频
      * @apiParam {Number} [pageNum] 页码，从1开始
      * @apiParam {String} [orderBy] 排序字段，如id/name
@@ -403,7 +408,16 @@ public class VideoController {
      */
     @GetMapping("/video")
     @ManagementCourse
-    public PageResponse<Video> getVideoList(@RequestParam(required = false, name = "pageSize") Integer pageSize, @RequestParam(required = false, name = "pageNum") Integer pageNum, @RequestParam(required = false, name = "orderBy") Direction orderBy, @RequestParam(required = false, name = "orderType") String orderType, @RequestParam(required = false, name = "search") String search) {
-        return null;
+    public PageResponse<Video> getVideoList(
+            @RequestParam(value = "pageSize", required = false) Integer pageSize,
+            @RequestParam(value = "pageNum", required = false) Integer pageNum,
+            @RequestParam(value = "orderBy", required = false) Direction orderBy,
+            @RequestParam(value = "orderType", required = false) String orderType,
+            @RequestParam(value = "search", required = false) String search) {
+        if (pageNum == null) pageNum = DEFAULT_PAGE_NUM;
+        if (pageSize == null) pageSize = DEFAULT_PAGE_SIZE;
+        if (orderBy == null) orderBy = DEFAULT_ORDER_BY;
+        if (orderType == null) orderType = DEFAULT_ORDER_TYPE;
+        return videoService.getVideoList(pageNum, pageSize, orderType, orderBy, search);
     }
 }
