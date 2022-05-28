@@ -84,7 +84,7 @@ public class OrderService {
         Order probe = new Order();
         probe.setUserId(UserContext.getUser().getId());
         Example<Order> orderExample = Example.of(probe);
-        if (!search.isEmpty()) {
+        if (search != null) {
             Course exampleCourse = new Course();
             exampleCourse.setName(search);
             probe.setCourse(exampleCourse);
