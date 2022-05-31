@@ -2,6 +2,7 @@ package com.personal.course.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.personal.course.entity.DO.Course;
+import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Query.CourseQuery;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
@@ -12,8 +13,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.http.HttpResponse;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -74,7 +79,30 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canGetCourseList() {
+    public void canGetCourseList() throws IOException, InterruptedException {
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
+        HttpResponse<String> res = get("/course", HttpHeaders.COOKIE, studentCookie);
+        assertEquals(200, res.statusCode());
+        PageResponse<CourseVO> courseVOPageResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertEquals(1, courseVOPageResponse.getPageNum());
+        assertEquals(10, courseVOPageResponse.getPageSize());
+        assertEquals(3, courseVOPageResponse.getTotal());
+        assertEquals(3, courseVOPageResponse.getData().size());
+        assertEquals(Arrays.asList("前端", "Java 课程", "Docker 课程"), courseVOPageResponse.getData().stream().map(CourseVO::getName).collect(Collectors.toList()));
+        assertEquals(Arrays.asList(19900, 49900, 129900), courseVOPageResponse.getData().stream().map(CourseVO::getPrice).collect(toList()));
+
+        res = get("/course?search=课程&pageSize=1", HttpHeaders.COOKIE, studentCookie);
+        assertEquals(200, res.statusCode());
+        courseVOPageResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertEquals(1, courseVOPageResponse.getPageNum());
+        assertEquals(1, courseVOPageResponse.getPageSize());
+        assertEquals(1, courseVOPageResponse.getData().size());
+        // TODO: search 未生效
+//        assertEquals(2, courseVOPageResponse.getTotal());
+//        assertEquals(Arrays.asList("Java 课程", "Docker 课程"), courseVOPageResponse.getData().stream().map(CourseVO::getName).collect(Collectors.toList()));
+//        assertEquals(Arrays.asList(49900, 129900), courseVOPageResponse.getData().stream().map(CourseVO::getPrice).collect(toList()));
 
     }
 

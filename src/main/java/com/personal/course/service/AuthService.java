@@ -50,8 +50,7 @@ public class AuthService {
     }
 
     public User getUserById(Integer id) {
-        User user = userDao.findById(id).orElseThrow(() -> HttpException.notFound("无此用户"));
-        return user;
+        return userDao.findById(id).orElseThrow(() -> HttpException.notFound("无此用户"));
     }
 
     public User login(UsernameAndPassword usernameAndPassword, HttpServletResponse response) {

@@ -58,3 +58,10 @@ docker run -p 5433:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_USER=root -e POSTG
 ```
 docker build [--platform linux/amd64] [-f Dockerfile] . 
 ```
+
+## Run Test
+
+1. JDK 版本 11
+2. ` docker run -p 5433:5432 -e POSTGRES_PASSWORD=root -e POSTGRES_USER=root -e POSTGRES_DB=course -d postgres `
+3. ` mvn flyway:migrate `
+4. ` mvn clean verify `

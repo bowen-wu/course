@@ -12,6 +12,8 @@ import com.personal.course.entity.Query.CourseQuery;
 import com.personal.course.entity.VO.CourseVO;
 import com.personal.course.entity.VO.VideoVO;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
@@ -97,7 +99,12 @@ public class CourseService {
         } else {
             Course course = new Course();
             course.setName(search);
-            coursePage = courseDao.findAll(Example.of(course), pageRequest);
+            ExampleMatcher customExampleMatcher = ExampleMatcher.matchingAny()
+                    .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                    .withStringMatcher(StringMatcher.CONTAINING)
+                    .withIgnoreNullValues();
+
+            coursePage = courseDao.findAll(Example.of(course, customExampleMatcher), pageRequest);
         }
         return PageResponse.of(pageNum, pageSize, (int) coursePage.getTotalElements(), "OK", coursePage.getContent().stream().map(this::courseInDbConvertToCourseVO).collect(toList()));
     }
