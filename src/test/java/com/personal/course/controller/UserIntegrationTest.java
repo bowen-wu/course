@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,14 +37,7 @@ class UserIntegrationTest extends AbstractIntegrationTest {
         assertEquals(1, getUserResponse.getData().getRoles().size());
 
         // update role => 200 + User + correct role
-        User updateUser = getUserResponse.getData();
-        Role updateRole = new Role();
-        updateRole.setName("admin");
-        List<Role> roles = updateUser.getRoles();
-        roles.add(updateRole);
-        updateUser.setRoles(roles);
-
-        response = patch("/user", objectMapper.writeValueAsString(updateUser), HttpHeaders.COOKIE, cookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        response = patch("/user/" + getUserResponse.getData().getId(), objectMapper.writeValueAsString(Arrays.asList(1, 3)), HttpHeaders.COOKIE, cookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         Response<User> updatedUserResponse = objectMapper.readValue(response.body(), new TypeReference<>() {
         });
 
@@ -61,7 +53,8 @@ class UserIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(200, response.statusCode());
         assertEquals(1, getUserResponseAfterUpdate.getData().getId());
-        // TODO: 不知道为何返回4个role
+
+//         TODO: 为啥有4个角色，1个 student，3 个 admin
 //        assertEquals(2, getUserResponseAfterUpdate.getData().getRoles().size());
 //        assertEquals(Arrays.asList("student", "admin"), getUserResponseAfterUpdate.getData().getRoles().stream().map(Role::getName).collect(toList()));
     }
@@ -75,14 +68,14 @@ class UserIntegrationTest extends AbstractIntegrationTest {
         HttpResponse<String> response = get("/user/1", HttpHeaders.COOKIE, studentCookie);
         assertEquals(403, response.statusCode());
 
-        response = patch("/user", objectMapper.writeValueAsString(new User()), HttpHeaders.COOKIE, teacherCookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        response = patch("/user/1", objectMapper.writeValueAsString(List.of()), HttpHeaders.COOKIE, teacherCookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(403, response.statusCode());
 
         response = get("/user?pageNum=2&pageSize=1", HttpHeaders.COOKIE, teacherCookie);
         assertEquals(403, response.statusCode());
 
 
-        response = patch("/user", objectMapper.writeValueAsString(new User()), HttpHeaders.COOKIE, studentCookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        response = patch("/user/1", objectMapper.writeValueAsString(List.of()), HttpHeaders.COOKIE, studentCookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(403, response.statusCode());
 
         response = get("/user?pageNum=2&pageSize=1", HttpHeaders.COOKIE, studentCookie);
@@ -141,15 +134,7 @@ class UserIntegrationTest extends AbstractIntegrationTest {
     public void return404WhenUpdateUserRole() throws IOException, InterruptedException {
         String adminCookie = getAdminCookie();
 
-        User updateUser = new User();
-        updateUser.setId(999);
-        Role updateRole = new Role();
-        updateRole.setName("admin");
-        List<Role> roles = new ArrayList<>();
-        roles.add(updateRole);
-        updateUser.setRoles(roles);
-
-        HttpResponse<String> response = patch("/user", objectMapper.writeValueAsString(updateUser), HttpHeaders.COOKIE, adminCookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        HttpResponse<String> response = patch("/user/999", objectMapper.writeValueAsString(Arrays.asList(1, 2)), HttpHeaders.COOKIE, adminCookie, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(404, response.statusCode());
     }
 

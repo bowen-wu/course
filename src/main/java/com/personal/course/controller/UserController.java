@@ -1,9 +1,9 @@
 package com.personal.course.controller;
 
 import com.personal.course.annotation.Admin;
+import com.personal.course.entity.DO.User;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Response;
-import com.personal.course.entity.DO.User;
 import com.personal.course.service.AuthService;
 import com.personal.course.service.UserService;
 import org.springframework.data.domain.Sort.Direction;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
+import java.util.List;
 
 import static com.personal.course.entity.PageResponse.DEFAULT_ORDER_TYPE;
 import static com.personal.course.entity.PageResponse.DEFAULT_PAGE_NUM;
@@ -35,7 +36,7 @@ public class UserController {
     }
 
     /**
-     * @api {patch} /api/v1/user 更新用户
+     * @api {patch} /api/v1/user/{id} 更新用户
      * @apiName updateUseRole
      * @apiDescription 管理员才能访问此接口
      * @apiGroup User Management
@@ -44,14 +45,8 @@ public class UserController {
      * @apiHeader {String} Content-Type application/json
      *
      * @apiParamExample Request-Example:
-     * {
-     *     "id": 12345,
-     *     "roles": [
-     *          {
-     *              "name": "admin"
-     *          }
-     *     ]
-     * }
+     *      PATCH /api/v1/video/123
+     *     [1, 2]
      *
      * @apiSuccess (Success 200) {User} data 更新后的用户
      * @apiSuccessExample Success-Response:
@@ -99,14 +94,14 @@ public class UserController {
      *     }
      */
     /**
-     * @param user 更新的用户信息
+     * @param roleIds 更新的用户角色
      * @return 更新后的用户信息
      */
-    @PatchMapping("/user")
+    @PatchMapping("/user/{id}")
     @ResponseBody
     @Admin
-    public Response<User> updateUserRole(@RequestBody User user) {
-        return Response.success(userService.updateUserRole(user.getId(), user.getRoles()));
+    public Response<User> updateUserRole(@PathVariable("id") Integer userId, @RequestBody List<Integer> roleIds) {
+        return Response.success(userService.updateUserRole(userId, roleIds));
     }
 
     /**
@@ -251,12 +246,7 @@ public class UserController {
     @GetMapping("/user")
     @ResponseBody
     @Admin
-    public PageResponse<User> getUserList(
-            @RequestParam(value = "pageNum", required = false) Integer pageNum,
-            @RequestParam(value = "pageSize", required = false) Integer pageSize,
-            @RequestParam(value = "orderType", required = false) String orderType,
-            @RequestParam(value = "orderBy", required = false) Direction orderBy,
-            @RequestParam(value = "search", required = false) String search) {
+    public PageResponse<User> getUserList(@RequestParam(value = "pageNum", required = false) Integer pageNum, @RequestParam(value = "pageSize", required = false) Integer pageSize, @RequestParam(value = "orderType", required = false) String orderType, @RequestParam(value = "orderBy", required = false) Direction orderBy, @RequestParam(value = "search", required = false) String search) {
         if (pageSize == null) {
             pageSize = DEFAULT_PAGE_SIZE;
         }

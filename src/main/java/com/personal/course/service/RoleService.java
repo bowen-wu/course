@@ -27,4 +27,10 @@ public class RoleService {
         roleDao.findAll().forEach(target::add);
         return target;
     }
+
+    public List<Role> getAllById(List<Integer> roleIds) {
+        List<Role> target = new ArrayList<>();
+        roleDao.findAllById(roleIds).forEach(target::add);
+        return target;
+    }
 }

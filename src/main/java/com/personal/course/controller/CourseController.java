@@ -299,7 +299,7 @@ public class CourseController {
      * @apiParam {String[]} [videos] 视频Id数组
      *
      * @apiParamExample Request-Example:
-     * PATCH /api/v1/course
+     * PATCH /api/v1/course/12345
      *          {
      *             "id": 12345,
      *             "name": "21天精通C++",

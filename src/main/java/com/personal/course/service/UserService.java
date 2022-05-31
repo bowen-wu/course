@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 
@@ -32,14 +33,14 @@ public class UserService {
         this.roleDao = roleDao;
     }
 
-    public User updateUserRole(Integer userId, List<Role> roles) {
+    public User updateUserRole(Integer userId, List<Integer> roleIds) {
         // 更新 Users 表，JPA是级联更新，通过 Hibernate ORM 框架实现，它会检查 users 和 users 下的 role 对象的变化，有变化更新的时候会一起更新 DB
         User userInDb = authService.getUserById(userId);
         if (userInDb == null) {
             throw HttpException.notFound("请检查用户ID");
         }
 
-        List<Role> roleList = roles.stream().map(Role::getName).distinct().map(roleDao::findByName).filter(Optional::isPresent).map(Optional::get).collect(toList());
+        List<Role> roleList = StreamSupport.stream(roleDao.findAllById(roleIds).spliterator(), false).map(Role::getName).distinct().map(roleDao::findByName).filter(Optional::isPresent).map(Optional::get).collect(toList());
         userInDb.setRoles(roleList);
         return userDao.save(userInDb);
     }
@@ -56,8 +57,7 @@ public class UserService {
             searchUser.setCreatedOn(null);
             searchUser.setUpdatedOn(null);
 
-            ExampleMatcher exampleMatcher = ExampleMatcher.matching()
-                    .withMatcher("username", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
+            ExampleMatcher exampleMatcher = ExampleMatcher.matching().withMatcher("username", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
 
             userPage = userDao.findAll(Example.of(searchUser, exampleMatcher), pageable);
         }
