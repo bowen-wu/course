@@ -17,7 +17,7 @@ public interface PaymentService {
      */
     TradePayResponse tradePayInWebPage(String tradeNo, int price, String subject, String returnUrl);
 
-    Status getTradeStatusFromPayTradeNo(String payTradeNo);
+    Status getTradeStatusFromPayTradeNo(String payTradeNo, String tradeNo);
 
-    void closeOrder(String payTradeNo);
+    void closeOrder(String payTradeNo, String tradeNo);
 }

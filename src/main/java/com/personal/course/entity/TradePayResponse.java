@@ -4,6 +4,10 @@ public class TradePayResponse {
     private String fromComponentHtml;
     private String payTradeNo;
 
+    public static TradePayResponse of(String fromComponentHtml) {
+        return TradePayResponse.of(fromComponentHtml, null);
+    }
+
     public static TradePayResponse of(String fromComponentHtml, String payTradeNo) {
         return new TradePayResponse(fromComponentHtml, payTradeNo);
     }

@@ -35,7 +35,7 @@ public class OrderController {
     }
 
     /**
-     * @api {post} /api/v1/order 下订单
+     * @api {post} /api/v1/order/{courseId} 下订单
      * @apiName placeOrder
      * @apiGroup Order Management
      * @apiDescription 填写必要信息，下订单
@@ -46,10 +46,7 @@ public class OrderController {
      * @apiParam {String} courseId 课程Id
      *
      * @apiParamExample Request-Example:
-     *          POST /api/v1/order
-     *          {
-     *             "courseId": 1234,
-     *          }
+     *          POST /api/v1/order/1234
      *
      * @apiSuccess (Success 201) {Order} order 新创建的订单信息，其中包括了支付的部分HTML，可嵌入页面
      * @apiSuccessExample Success-Response:

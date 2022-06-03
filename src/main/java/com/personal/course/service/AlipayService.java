@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -26,18 +27,10 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class AlipayService implements PaymentService {
-    @Value("${alipay.application.appId}")
-    private String appId;
-    @Value("${alipay.application.privateKey}")
-    private String privateKey;
-    @Value("${alipay.application.alipayPublicKey}")
-    private String alipayPublicKey;
-    @Value("${alipay.application.serverUrl}")
-    private String serverUrl;
-
     private final AlipayClient alipayClient;
 
-    public AlipayService() {
+    @Inject
+    public AlipayService(@Value("${alipay.application.appId}") String appId, @Value("${alipay.application.privateKey}") String privateKey, @Value("${alipay.application.alipayPublicKey}") String alipayPublicKey, @Value("${alipay.application.serverUrl}") String serverUrl) {
         this.alipayClient = new DefaultAlipayClient(serverUrl, appId, privateKey, "json", StandardCharsets.UTF_8.name(), alipayPublicKey, "RSA2");
     }
 
@@ -63,9 +56,7 @@ public class AlipayService implements PaymentService {
         bizContent.put("subject", subject);
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
         // 15 分钟付款时间
-        String after15Minutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                .withZone(ZoneId.of("UTC"))
-                .format(Instant.now().plus(Duration.ofMillis(15)));
+        String after15Minutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("UTC")).format(Instant.now().plus(Duration.ofMillis(15)));
 
         bizContent.put("time_expire", after15Minutes);
 
@@ -84,10 +75,11 @@ public class AlipayService implements PaymentService {
     }
 
     @Override
-    public Status getTradeStatusFromPayTradeNo(String payTradeNo) {
+    public Status getTradeStatusFromPayTradeNo(String payTradeNo, String tradeNo) {
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
         JSONObject bizContent = new JSONObject();
         bizContent.put("trade_no", payTradeNo);
+        bizContent.put("out_trade_no", tradeNo);
         request.setBizContent(bizContent.toString());
         AlipayTradeQueryResponse response;
         try {
@@ -110,10 +102,11 @@ public class AlipayService implements PaymentService {
     }
 
     @Override
-    public void closeOrder(String payTradeNo) {
+    public void closeOrder(String payTradeNo, String tradeNo) {
         AlipayTradeCloseRequest request = new AlipayTradeCloseRequest();
         JSONObject bizContent = new JSONObject();
         bizContent.put("trade_no", payTradeNo);
+        bizContent.put("out_trade_no", tradeNo);
         request.setBizContent(bizContent.toString());
         AlipayTradeCloseResponse response;
         try {

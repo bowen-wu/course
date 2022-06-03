@@ -1,5 +1,6 @@
 package com.personal.course.configuration;
 
+import com.personal.course.service.AuthService;
 import com.personal.course.service.CookieService;
 import com.personal.course.service.SessionService;
 import org.springframework.context.annotation.Configuration;
@@ -13,16 +14,18 @@ import javax.inject.Inject;
 public class Config implements WebMvcConfigurer {
     private final SessionService sessionService;
     private final CookieService cookieService;
+    private final AuthService authService;
 
     @Inject
-    public Config(SessionService sessionService, CookieService cookieService) {
+    public Config(SessionService sessionService, CookieService cookieService, AuthService authService) {
         this.sessionService = sessionService;
         this.cookieService = cookieService;
+        this.authService = authService;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new AuthInterceptor(sessionService, cookieService));
+        registry.addInterceptor(new AuthInterceptor(sessionService, cookieService, authService));
     }
 
     @Override

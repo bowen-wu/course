@@ -13,20 +13,26 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import java.util.List;
+
+import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 
 @Service
 public class AuthService {
     private final UserDao userDao;
     private final RoleDao roleDao;
     private final CookieService cookieService;
+    private final SessionService sessionService;
 
     @Inject
-    public AuthService(UserDao userDao, RoleDao roleDao, CookieService cookieService) {
+    public AuthService(UserDao userDao, RoleDao roleDao, CookieService cookieService, SessionService sessionService) {
         this.userDao = userDao;
         this.roleDao = roleDao;
         this.cookieService = cookieService;
+        this.sessionService = sessionService;
     }
 
     public User registerUser(UsernameAndPassword usernameAndPassword) {
@@ -65,6 +71,12 @@ public class AuthService {
             return userInDB;
         } else {
             throw HttpException.badRequest("密码错误！");
+        }
+    }
+
+    public void deleteSession(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            Arrays.stream(request.getCookies()).filter(item -> item.getName().equals(COOKIE_NAME)).map(Cookie::getValue).findFirst().ifPresent(sessionService::deleteSessionByCookie);
         }
     }
 }

@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -181,9 +182,10 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
     private String mockData(Status firstStatus, Status... nextStatus) {
         String testFormComponentHtml = "<form></form>";
         String testPayTradeNo = UUID.randomUUID().toString();
-        TradePayResponse testTradePayResponse = TradePayResponse.of(testFormComponentHtml, testPayTradeNo);
+//        TradePayResponse testTradePayResponse = TradePayResponse.of(testFormComponentHtml, testPayTradeNo);
+        TradePayResponse testTradePayResponse = TradePayResponse.of(testFormComponentHtml, null);
         when(paymentService.tradePayInWebPage(anyString(), anyInt(), anyString(), anyString())).thenReturn(testTradePayResponse);
-        when(paymentService.getTradeStatusFromPayTradeNo(testPayTradeNo)).thenReturn(firstStatus, nextStatus);
+        when(paymentService.getTradeStatusFromPayTradeNo(any(), any())).thenReturn(firstStatus, nextStatus);
         return testFormComponentHtml;
     }
 }

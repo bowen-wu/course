@@ -59,7 +59,7 @@ public class OrderService {
     }
 
     private Order queryOrderPayStatus(Order queryOrder) {
-        Status tradeStatus = paymentService.getTradeStatusFromPayTradeNo(queryOrder.getPayTradeNo());
+        Status tradeStatus = paymentService.getTradeStatusFromPayTradeNo(queryOrder.getPayTradeNo(), queryOrder.getTradeNo());
         if (!queryOrder.getStatus().equals(tradeStatus)) {
             queryOrder.setStatus(tradeStatus);
             queryOrder.setUpdatedOn(Instant.now());
@@ -99,7 +99,7 @@ public class OrderService {
         checkIsOwnerOrder(orderInDb);
         if (Status.UNPAID.equals(orderInDb.getStatus())) {
             // 未支付状态下可以关闭订单
-            paymentService.closeOrder(orderInDb.getPayTradeNo());
+            paymentService.closeOrder(orderInDb.getPayTradeNo(), orderInDb.getTradeNo());
             return queryOrderPayStatus(orderInDb);
         }
         throw HttpException.of(HttpStatus.GONE, "该订单不是未支付状态！");

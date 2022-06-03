@@ -28,12 +28,10 @@ import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 @RequestMapping("/api/v1")
 public class AuthController {
     private final AuthService authService;
-    private final SessionService sessionService;
 
     @Inject
-    public AuthController(AuthService authService, SessionService sessionService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.sessionService = sessionService;
     }
 
     /**
@@ -145,7 +143,8 @@ public class AuthController {
     @ResponseBody
     public Response<User> login(@RequestBody UsernameAndPassword usernameAndPassword, HttpServletResponse response) {
         cleanParameter(usernameAndPassword);
-        return Response.success(authService.login(usernameAndPassword, response));
+        User login = authService.login(usernameAndPassword, response);
+        return Response.success(login);
     }
 
     /**
@@ -182,9 +181,10 @@ public class AuthController {
      * @return 已登录的用户
      */
     @GetMapping("/session")
-    public Response<User> authStatus() {
+    public Response<User> authStatus(HttpServletRequest request) {
         User user = UserContext.getUser();
         if (user == null) {
+            authService.deleteSession(request);
             throw HttpException.unauthorized();
         }
         return Response.success(user);
@@ -213,10 +213,10 @@ public class AuthController {
      */
     @DeleteMapping("/session")
     public void logout(HttpServletRequest request, HttpServletResponse response) {
+        authService.deleteSession(request);
         if (UserContext.getUser() == null) {
             throw HttpException.unauthorized("未登录");
         }
-        Arrays.stream(request.getCookies()).filter(item -> item.getName().equals(COOKIE_NAME)).map(Cookie::getValue).findFirst().ifPresent(sessionService::deleteSessionByCookie);
 
         Cookie cookie = new Cookie(COOKIE_NAME, null);
         cookie.setMaxAge(0);

@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuthIntegrationTest extends AbstractIntegrationTest {
@@ -47,6 +48,7 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
         });
         assertEquals("jackson", loginResponse.getData().getUsername());
         assertEquals(Status.OK, loginResponse.getData().getStatus());
+        assertEquals(1, response.headers().allValues(HttpHeaders.SET_COOKIE).size());
 
         String cookie = response.headers().allValues(HttpHeaders.SET_COOKIE).get(0);
 
@@ -132,5 +134,15 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
         usernameAndPassword.setUsername("jacks");
         response = post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    public void loginWithCookie() throws IOException, InterruptedException {
+        UsernameAndPassword usernameAndPassword = new UsernameAndPassword("student", "student");
+        String studentCookie = getUserCookie(usernameAndPassword);
+        HttpResponse<String> response = post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
+        assertEquals(200, response.statusCode());
+        String cookie = response.headers().allValues(HttpHeaders.SET_COOKIE).get(0);
+        assertNotEquals(studentCookie.split(";")[0].split("=")[1], cookie.split(";")[0].split("=")[1]);
     }
 }
