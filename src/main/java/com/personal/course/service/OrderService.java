@@ -1,8 +1,10 @@
 package com.personal.course.service;
 
 import com.personal.course.configuration.UserContext;
+import com.personal.course.dao.CustomConfigDao;
 import com.personal.course.dao.OrderDao;
 import com.personal.course.entity.DO.Course;
+import com.personal.course.entity.DO.CustomConfig;
 import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.OrderWithComponentHtml;
@@ -26,18 +28,22 @@ public class OrderService {
     private final PaymentService paymentService;
     private final CourseService courseService;
     private final OrderDao orderDao;
+    private final CustomConfigDao customConfigDao;
 
-    public OrderService(PaymentService paymentService, CourseService courseService, OrderDao orderDao) {
+    public OrderService(PaymentService paymentService, CourseService courseService, OrderDao orderDao, CustomConfigDao customConfigDao) {
         this.paymentService = paymentService;
         this.courseService = courseService;
         this.orderDao = orderDao;
+        this.customConfigDao = customConfigDao;
     }
 
     public OrderWithComponentHtml placeOrder(Integer courseId) {
         Course course = courseService.getCourseById(courseId);
         String tradeNo = UUID.randomUUID().toString();
-        // TODO: returnUrl => 前端订单详情页面
-        TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, course.getPrice(), course.getName(), "");
+        CustomConfig customConfig = customConfigDao.findByName("paymentReturnUrl").orElseThrow(() -> {
+            throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 paymentReturnUrl 配置");
+        });
+        TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, course.getPrice(), course.getName(), customConfig.getValue());
         Order pendCreateOrder = new Order();
         pendCreateOrder.setTradeNo(tradeNo);
         pendCreateOrder.setCourse(course);

@@ -56,7 +56,7 @@ public class AlipayService implements PaymentService {
         bizContent.put("subject", subject);
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
         // 15 分钟付款时间
-        String after15Minutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("UTC")).format(Instant.now().plus(Duration.ofMillis(15)));
+        String after15Minutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now().plus(Duration.ofMinutes(15)));
 
         bizContent.put("time_expire", after15Minutes);
 
