@@ -12,7 +12,7 @@ import java.time.Instant;
 @Table(name = "ORDERS")
 public class Order extends BaseEntity {
     private Integer userId;
-    private Course course;
+    private OrderCourse course;
     private Integer price;
     private String tradeNo;
     @JsonIgnore
@@ -21,7 +21,7 @@ public class Order extends BaseEntity {
     public Order() {
     }
 
-    public Order(Integer id, Instant createdOn, Instant updatedOn, Status status, Integer userId, Course course, Integer price, String tradeNo, String payTradeNo) {
+    public Order(Integer id, Instant createdOn, Instant updatedOn, Status status, Integer userId, OrderCourse course, Integer price, String tradeNo, String payTradeNo) {
         super(id, createdOn, updatedOn, status);
         this.userId = userId;
         this.course = course;
@@ -30,7 +30,7 @@ public class Order extends BaseEntity {
         this.payTradeNo = payTradeNo;
     }
 
-    public Order(Integer userId, Course course, Integer price, String tradeNo) {
+    public Order(Integer userId, OrderCourse course, Integer price, String tradeNo) {
         this.userId = userId;
         this.course = course;
         this.price = price;
@@ -38,11 +38,11 @@ public class Order extends BaseEntity {
     }
 
     @OneToOne
-    public Course getCourse() {
+    public OrderCourse getCourse() {
         return course;
     }
 
-    public void setCourse(Course course) {
+    public void setCourse(OrderCourse course) {
         this.course = course;
     }
 

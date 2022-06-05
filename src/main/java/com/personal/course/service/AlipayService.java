@@ -10,6 +10,7 @@ import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
+import com.personal.course.entity.DTO.PaymentTradeQueryResponse;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PayStatus;
 import com.personal.course.entity.Status;
@@ -48,65 +49,73 @@ public class AlipayService implements PaymentService {
     @Override
     public TradePayResponse tradePayInWebPage(String tradeNo, int price, String subject, String returnUrl) {
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
-        request.setNotifyUrl("");
         request.setReturnUrl(returnUrl);
         JSONObject bizContent = new JSONObject();
         bizContent.put("out_trade_no", tradeNo);
-        bizContent.put("total_amount", price / 10000); // price 单位 分
+        bizContent.put("total_amount", price / 100); // price 单位 分
         bizContent.put("subject", subject);
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
+
         // 15 分钟付款时间
         String after15Minutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now().plus(Duration.ofMinutes(15)));
-
         bizContent.put("time_expire", after15Minutes);
-
         request.setBizContent(bizContent.toString());
         AlipayTradePagePayResponse response;
         try {
             response = alipayClient.pageExecute(request);
         } catch (AlipayApiException e) {
             e.printStackTrace();
-            throw HttpException.of(HttpStatus.GATEWAY_TIMEOUT, "请求支付宝出错，请稍后重试");
+            throw HttpException.of(HttpStatus.SERVICE_UNAVAILABLE, "请求支付宝出错，请稍后重试");
         }
         if (response.isSuccess()) {
             return TradePayResponse.of(response.getBody(), response.getTradeNo());
+        } else {
+            throw HttpException.of(HttpStatus.SERVICE_UNAVAILABLE, "请求支付宝出错，请稍后重试");
         }
-        throw HttpException.of(HttpStatus.INTERNAL_SERVER_ERROR, response.getBody());
     }
 
     @Override
-    public Status getTradeStatusFromPayTradeNo(String payTradeNo, String tradeNo) {
+    public PaymentTradeQueryResponse getTradeStatusFromPayTradeNo(String payTradeNo, String tradeNo, Status tradeStatus) {
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
         JSONObject bizContent = new JSONObject();
-        bizContent.put("trade_no", payTradeNo);
-        bizContent.put("out_trade_no", tradeNo);
+        if (payTradeNo != null) {
+            bizContent.put("trade_no", payTradeNo);
+        } else {
+            bizContent.put("out_trade_no", tradeNo);
+        }
         request.setBizContent(bizContent.toString());
         AlipayTradeQueryResponse response;
         try {
             response = alipayClient.execute(request);
         } catch (AlipayApiException e) {
             e.printStackTrace();
-            throw HttpException.of(HttpStatus.GATEWAY_TIMEOUT, "请求支付宝出错，请稍后重试");
+            throw HttpException.of(HttpStatus.SERVICE_UNAVAILABLE, "请求支付宝出错，请稍后重试");
         }
+
+        Status newTradeStatus = tradeStatus;
         if (response.isSuccess()) {
-            String tradeStatus = response.getTradeStatus();
-            if (PayStatus.WAIT_BUYER_PAY.name().equals(tradeStatus)) {
-                return Status.UNPAID;
+            if (PayStatus.WAIT_BUYER_PAY.name().equals(response.getTradeStatus())) {
+                newTradeStatus = Status.UNPAID;
+            } else if (PayStatus.TRADE_CLOSED.name().equals(response.getTradeStatus())) {
+                newTradeStatus = Status.CLOSED;
+            } else {
+                newTradeStatus = Status.PAID;
             }
-            if (PayStatus.TRADE_CLOSED.name().equals(tradeStatus)) {
-                return Status.CLOSED;
-            }
-            return Status.PAID;
+
+            return PaymentTradeQueryResponse.of(newTradeStatus, response.getTradeNo());
         }
-        throw HttpException.of(HttpStatus.INTERNAL_SERVER_ERROR, response.getBody());
+        return PaymentTradeQueryResponse.of(newTradeStatus, null);
     }
 
     @Override
     public void closeOrder(String payTradeNo, String tradeNo) {
         AlipayTradeCloseRequest request = new AlipayTradeCloseRequest();
         JSONObject bizContent = new JSONObject();
-        bizContent.put("trade_no", payTradeNo);
-        bizContent.put("out_trade_no", tradeNo);
+        if (payTradeNo != null) {
+            bizContent.put("trade_no", payTradeNo);
+        } else {
+            bizContent.put("out_trade_no", tradeNo);
+        }
         request.setBizContent(bizContent.toString());
         AlipayTradeCloseResponse response;
         try {
@@ -116,7 +125,7 @@ public class AlipayService implements PaymentService {
             throw HttpException.of(HttpStatus.GATEWAY_TIMEOUT, "请求支付宝出错，请稍后重试");
         }
         if (!response.isSuccess()) {
-            throw HttpException.of(HttpStatus.INTERNAL_SERVER_ERROR, response.getBody());
+            throw HttpException.of(HttpStatus.SERVICE_UNAVAILABLE, response.getBody());
         }
     }
 }

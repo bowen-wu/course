@@ -2,6 +2,7 @@ package com.personal.course.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.personal.course.entity.DO.Order;
+import com.personal.course.entity.DTO.PaymentTradeQueryResponse;
 import com.personal.course.entity.OrderWithComponentHtml;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
@@ -18,7 +19,6 @@ import org.springframework.http.MediaType;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.http.HttpResponse;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -45,7 +45,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testOrderProcess() throws IOException, InterruptedException {
         // 创建一个课程用于下订单
-        String testFormComponentHtml = mockData(Status.PAID);
+        String testFormComponentHtml = mockData(PaymentTradeQueryResponse.of(Status.PAID, null));
 
         // student userId = 1
         String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
@@ -76,13 +76,12 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         // 获取订单信息 => 404
         res = get("/order/" + createdOrderId, HttpHeaders.COOKIE, studentCookie);
         assertEquals(404, res.statusCode());
-
     }
 
     @Test
     public void testCancelOrder() throws IOException, InterruptedException {
         // 创建一个课程用于下订单
-        String testFormComponentHtml = mockData(Status.UNPAID, Status.CLOSED);
+        String testFormComponentHtml = mockData(PaymentTradeQueryResponse.of(Status.UNPAID, null), PaymentTradeQueryResponse.of(Status.CLOSED, null));
 
         String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
         Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
@@ -127,7 +126,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void return403WhenGetOrDeleteOrCancelOrder() throws IOException, InterruptedException {
-        String testFormComponentHtml = mockData(Status.PAID);
+        String testFormComponentHtml = mockData(PaymentTradeQueryResponse.of(Status.PAID, null));
 
         // student userId = 1
         String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
@@ -151,7 +150,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void cannotCancelOrderWhenStatusNoUnpaid() throws IOException, InterruptedException {
-        String testFormComponentHtml = mockData(Status.CLOSED);
+        String testFormComponentHtml = mockData(PaymentTradeQueryResponse.of(Status.CLOSED, null));
 
         String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
         Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
@@ -179,13 +178,11 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         return orderWithComponentHtmlResponse;
     }
 
-    private String mockData(Status firstStatus, Status... nextStatus) {
+
+    private String mockData(PaymentTradeQueryResponse firstPaymentTradeQueryResponse, PaymentTradeQueryResponse... restPaymentTradeQueryResponse) {
         String testFormComponentHtml = "<form></form>";
-        String testPayTradeNo = UUID.randomUUID().toString();
-//        TradePayResponse testTradePayResponse = TradePayResponse.of(testFormComponentHtml, testPayTradeNo);
-        TradePayResponse testTradePayResponse = TradePayResponse.of(testFormComponentHtml, null);
-        when(paymentService.tradePayInWebPage(anyString(), anyInt(), anyString(), anyString())).thenReturn(testTradePayResponse);
-        when(paymentService.getTradeStatusFromPayTradeNo(any(), any())).thenReturn(firstStatus, nextStatus);
+        when(paymentService.tradePayInWebPage(anyString(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
+        when(paymentService.getTradeStatusFromPayTradeNo(any(), any(), any())).thenReturn(firstPaymentTradeQueryResponse, restPaymentTradeQueryResponse);
         return testFormComponentHtml;
     }
 }

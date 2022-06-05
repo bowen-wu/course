@@ -1,5 +1,6 @@
 package com.personal.course.service;
 
+import com.personal.course.entity.DTO.PaymentTradeQueryResponse;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.TradePayResponse;
 
@@ -17,7 +18,7 @@ public interface PaymentService {
      */
     TradePayResponse tradePayInWebPage(String tradeNo, int price, String subject, String returnUrl);
 
-    Status getTradeStatusFromPayTradeNo(String payTradeNo, String tradeNo);
+    PaymentTradeQueryResponse getTradeStatusFromPayTradeNo(String payTradeNo, String tradeNo, Status tradeStatus);
 
     void closeOrder(String payTradeNo, String tradeNo);
 }

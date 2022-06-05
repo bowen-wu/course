@@ -52,13 +52,20 @@ public class OrderController {
      * @apiSuccessExample Success-Response:
      *     HTTP/1.1 201 Created
      *          {
-     *             "id": 1,
-     *             "course": 12345,
-     *             "name": "21天精通C++",
-     *             "teacherName": "Torvalds Linus",
-     *             "teacherDescription": "Creator of Linux",
+     *             "id": 1234,
+     *             "status": "UNPAID"  // DELETED, UNPAID, CLOSED, PAID
+     *             "userId": 123,
+     *             "course": {
+     *                 "id": 1,
+     *                 "createdOn": "2022-06-03T14:20:45.760671Z",
+     *                 "name": "21天精通C++",
+     *                 "teacherName": "Torvalds Linus",
+     *                 "teacherDescription": "Creator of Linux",
+     *                 "price": 9900,
+     *             },
+     *             "tradeNo": "course_1_20220605095549",
      *             "price": 9900,
-     *             "formHtml":  <form name="submit_form" method="post" action="https://openapi.alipay.com/gateway.do?charset=UTF-8&method=alipay.trade.page.pay&sign=k0w1DePFqNMQWyGBwOaEsZEJuaIEQufjoPLtwYBYgiX%2FRSkBFY38VuhrNumXpoPY9KgLKtm4nwWz4DEQpGXOOLaqRZg4nDOGOyCmwHmVSV5qWKDgWMiW%2BLC2f9Buil%2BEUdE8CFnWhM8uWBZLGUiCrAJA14hTjVt4BiEyiPrtrMZu0o6%2FXsBu%2Fi6y4xPR%2BvJ3KWU8gQe82dIQbowLYVBuebUMc79Iavr7XlhQEFf%2F7WQcWgdmo2pnF4tu0CieUS7Jb0FfCwV%2F8UyrqFXzmCzCdI2P5FlMIMJ4zQp%2BTBYsoTVK6tg12stpJQGa2u3%2BzZy1r0KNzxcGLHL%2BwWRTx%2FCU%2Fg%3D%3D&notify_url=http%3A%2F%2F114.55.81.185%2Fopendevtools%2Fnotify%2Fdo%2Fbf70dcb4-13c9-4458-a547-3a5a1e8ead04&version=1.0&app_id=2014100900013222&sign_type=RSA&timestamp=2021-02-02+14%3A11%3A40&alipay_sdk=alipay-sdk-java-dynamicVersionNo&format=json">
+     *             "formComponentHtml":  <form name="submit_form" method="post" action="https://openapi.alipay.com/gateway.do?charset=UTF-8&method=alipay.trade.page.pay&sign=k0w1DePFqNMQWyGBwOaEsZEJuaIEQufjoPLtwYBYgiX%2FRSkBFY38VuhrNumXpoPY9KgLKtm4nwWz4DEQpGXOOLaqRZg4nDOGOyCmwHmVSV5qWKDgWMiW%2BLC2f9Buil%2BEUdE8CFnWhM8uWBZLGUiCrAJA14hTjVt4BiEyiPrtrMZu0o6%2FXsBu%2Fi6y4xPR%2BvJ3KWU8gQe82dIQbowLYVBuebUMc79Iavr7XlhQEFf%2F7WQcWgdmo2pnF4tu0CieUS7Jb0FfCwV%2F8UyrqFXzmCzCdI2P5FlMIMJ4zQp%2BTBYsoTVK6tg12stpJQGa2u3%2BzZy1r0KNzxcGLHL%2BwWRTx%2FCU%2Fg%3D%3D&notify_url=http%3A%2F%2F114.55.81.185%2Fopendevtools%2Fnotify%2Fdo%2Fbf70dcb4-13c9-4458-a547-3a5a1e8ead04&version=1.0&app_id=2014100900013222&sign_type=RSA&timestamp=2021-02-02+14%3A11%3A40&alipay_sdk=alipay-sdk-java-dynamicVersionNo&format=json">
      *                              <input type="submit" value="提交" style="display:none" >
      *                          </form>
      *                          <script>document.forms[0].submit();</script>
@@ -66,6 +73,7 @@ public class OrderController {
      * @apiError 400 Bad Request 若请求中包含错误
      * @apiError 401 Unauthorized 若未登录
      * @apiError 404 Not Found 没有该课程
+     * @apiError 503 Service Unavailable 服务器繁忙，请稍后重试
      *
      * @apiErrorExample Error-Response:
      *     HTTP/1.1 400 Bad Request
@@ -101,17 +109,26 @@ public class OrderController {
      * @apiSuccessExample Success-Response:
      *     HTTP/1.1 200 OK
      *          {
-     *             "id": 1,
-     *             "course": 12345,
-     *             "name": "21天精通C++",
-     *             "teacherName": "Torvalds Linus",
-     *             "teacherDescription": "Creator of Linux",
-     *             "price": 9900,
+     *             "id": 12345,
+     *             "status": "CLOSE",
+     *             "createdOn": "2022-06-05T01:55:50.136276Z",
+     *             "userId": 1,
+     *             "course": {
+     *                 "id": 1,
+     *                 "createdOn": "2022-06-03T14:20:45.760671Z",
+     *                 "name": "21天精通C++",
+     *                 "teacherName": "Torvalds Linus",
+     *                 "teacherDescription": "Creator of Linux",
+     *                 "price": 9900,  // 单位 分
+     *             },
+     *             "price": 9900,  // 单位 分
+     *             "tradeNo": "course_1_20220605095549"
      *          }
      * @apiError 400 Bad Request 若请求中包含错误
      * @apiError 401 Unauthorized 若未登录
      * @apiError 403 Forbidden 取消非自己的订单
      * @apiError 410 Gone 该订单不能取消。所请求的资源不再可用
+     * @apiError 503 Service Unavailable 服务器繁忙，请稍后重试
      *
      * @apiErrorExample Error-Response:
      *     HTTP/1.1 400 Bad Request
@@ -145,22 +162,24 @@ public class OrderController {
      *     HTTP/1.1 200 OK
      *          {
      *             "id": 12345,
-     *             "name": "21天精通C++",
-     *             "teacherName": "Torvalds Linus",
-     *             "teacherDescription": "Creator of Linux",
-     *             "videos": [
-     *                {
-     *                    "id": 456,
-     *                    "name": "第一课",
-     *                    "description": "",
-     *                    "url": "https://oss.aliyun.com/xxx"
-     *                }
-     *             ],
+     *             "status": "UNPAID",
+     *             "createdOn": "2022-06-05T01:55:50.136276Z",
+     *             "userId": 1,
+     *             "course": {
+     *                 "id": 1,
+     *                 "createdOn": "2022-06-03T14:20:45.760671Z",
+     *                 "name": "21天精通C++",
+     *                 "teacherName": "Torvalds Linus",
+     *                 "teacherDescription": "Creator of Linux",
+     *                 "price": 9900,  // 单位 分
+     *             },
      *             "price": 9900,  // 单位 分
+     *             "tradeNo": "course_1_20220605095549"
      *          }
      * @apiError 400 Bad request 若请求中包含错误
      * @apiError 403 Forbidden 获取非自己的订单
      * @apiError 404 Not Found 没有该订单
+     * @apiError 503 Service Unavailable 服务器繁忙，请稍后重试
      *
      * @apiErrorExample Error-Response:
      *     HTTP/1.1 400 Bad Request
@@ -195,6 +214,7 @@ public class OrderController {
      * @apiError 401 Unauthorized 若未登录
      * @apiError 403 Forbidden 删除非自己的订单
      * @apiError 404 Not Found 没有该订单
+     * @apiError 503 Service Unavailable 服务器繁忙，请稍后重试
      *
      * @apiErrorExample Error-Response:
      *     HTTP/1.1 400 Bad Request
@@ -243,22 +263,24 @@ public class OrderController {
      *       "data": [
      *          {
      *             "id": 12345,
-     *             "name": "21天精通C++",
-     *             "teacherName": "Torvalds Linus",
-     *             "teacherDescription": "Creator of Linux",
-     *             videos: [
-     *                {
-     *                    "id": 456,
-     *                    "name": "第一课",
-     *                    "description": "",
-     *                    "url": "https://oss.aliyun.com/xxx"
-     *                }
-     *             ],
-     *             price: 9900, // 单位 分
+     *             "status": "UNPAID",
+     *             "createdOn": "2022-06-05T01:55:50.136276Z",
+     *             "userId": 1,
+     *             "course": {
+     *                 "id": 1,
+     *                 "createdOn": "2022-06-03T14:20:45.760671Z",
+     *                 "name": "21天精通C++",
+     *                 "teacherName": "Torvalds Linus",
+     *                 "teacherDescription": "Creator of Linux",
+     *                 "price": 9900,  // 单位 分
+     *             },
+     *             "price": 9900,  // 单位 分
+     *             "tradeNo": "course_1_20220605095549"
      *          }
      *       ]
      *     }
      * @apiError 400 Bad request 若请求中包含错误
+     * @apiError 503 Service Unavailable 服务器繁忙，请稍后重试
      *
      * @apiErrorExample Error-Response:
      *     HTTP/1.1 400 Bad Request

@@ -1,10 +1,12 @@
 package com.personal.course.service;
 
 import com.personal.course.dao.CourseDao;
+import com.personal.course.dao.OrderCourseDao;
 import com.personal.course.dao.OrderDao;
 import com.personal.course.dao.VideoDao;
 import com.personal.course.entity.DO.Course;
 import com.personal.course.entity.DO.Order;
+import com.personal.course.entity.DO.OrderCourse;
 import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
@@ -31,13 +33,15 @@ import static java.util.stream.Collectors.toList;
 public class CourseService {
     private final VideoDao videoDao;
     private final CourseDao courseDao;
+    private final OrderCourseDao orderCourseDao;
     private final OrderDao orderDao;
     private final VideoService videoService;
 
     @Inject
-    public CourseService(VideoDao videoDao, CourseDao courseDao, OrderDao orderDao, VideoService videoService) {
+    public CourseService(VideoDao videoDao, CourseDao courseDao, OrderCourseDao orderCourseDao, OrderDao orderDao, VideoService videoService) {
         this.videoDao = videoDao;
         this.courseDao = courseDao;
+        this.orderCourseDao = orderCourseDao;
         this.orderDao = orderDao;
         this.videoService = videoService;
     }
@@ -59,6 +63,10 @@ public class CourseService {
 
     public Course getCourseById(Integer courseId) {
         return courseDao.findById(courseId).orElseThrow(() -> HttpException.notFound("没有此课程" + courseId));
+    }
+
+    public OrderCourse getOrderCourseById(Integer courseId) {
+        return orderCourseDao.findById(courseId).orElseThrow(() -> HttpException.notFound("没有此课程" + courseId));
     }
 
     public CourseVO getCourse(Integer courseId, Integer userId) {
@@ -99,10 +107,7 @@ public class CourseService {
         } else {
             Course course = new Course();
             course.setName(search);
-            ExampleMatcher customExampleMatcher = ExampleMatcher.matchingAny()
-                    .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
-                    .withStringMatcher(StringMatcher.CONTAINING)
-                    .withIgnoreNullValues();
+            ExampleMatcher customExampleMatcher = ExampleMatcher.matchingAny().withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()).withStringMatcher(StringMatcher.CONTAINING).withIgnoreNullValues();
 
             coursePage = courseDao.findAll(Example.of(course, customExampleMatcher), pageRequest);
         }
