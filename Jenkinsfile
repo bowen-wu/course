@@ -25,10 +25,12 @@ pipeline {
                 sh 'echo "SSH user is $SSH_CREDS_USR"'
                 sh 'echo "SSH passphrase is $SSH_CREDS_PSW"'
                 echo "🎉 You choose version: ${version} 🎉"
-                sh "ssh root@101.35.43.9 'docker pull 101.35.43.9:5000/test-jenkinsfile:${version}'"
-                echo "🎉 Pull 101.35.43.9:5000/test-jenkinsfile:${version} Success~ 🎉"
-                sh "ssh root@101.35.43.9 'source /root/project/course/start-docker-container.sh ${version}'"
-                echo "🎉 Restart Success~ 🎉"
+                sshagent (credentials: ['f426a4f3-d52e-4737-ad44-65ed0586e7e7']) {
+                    sh "ssh -o StrictHostKeyChecking=no root@101.35.43.9 'docker pull 101.35.43.9:5000/test-jenkinsfile:${version}'"
+                    echo "🎉 Pull 101.35.43.9:5000/test-jenkinsfile:${version} Success~ 🎉"
+                    sh "ssh root@101.35.43.9 'source /root/project/course/start-docker-container.sh ${version}'"
+                    echo "🎉 Restart Success~ 🎉"
+                }
             }
         }
     }
