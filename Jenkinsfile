@@ -1,5 +1,5 @@
-def responseJson = new URL("d ")
-        .getText(requestProperties: ['Content-Type': "application/json"]);
+def responseJson = new URL("http://101.35.43.9:5000/v2/test-jenkinsfile/tags/list").getText(requestProperties: ['Content-Type': "application/json"]);
+
 
 // responseJson: {name:xxx,tags:[tag1,tag2,...]}
 Map response = new groovy.json.JsonSlurperClassic().parseText(responseJson) as Map;
