@@ -1,4 +1,4 @@
-def responseJson = new URL("http://101.35.43.9:5000/v2/test-jenkinsfile/tags/list")
+def responseJson = new URL("d ")
         .getText(requestProperties: ['Content-Type': "application/json"]);
 
 // responseJson: {name:xxx,tags:[tag1,tag2,...]}
@@ -10,6 +10,9 @@ pipeline {
     agent any
     stages {
         stage('Deploy') {
+             environment {
+                SSH_CREDS = credentials('jenkins')
+            }
             input {
                 message "Choose a version"
                 ok "Deploy"
@@ -18,6 +21,9 @@ pipeline {
                 }
             }
             steps {
+                sh 'echo "SSH private key is located at $SSH_CREDS"'
+                sh 'echo "SSH user is $SSH_CREDS_USR"'
+                sh 'echo "SSH passphrase is $SSH_CREDS_PSW"'
                 echo "🎉 You choose version: ${version} 🎉"
                 sh "ssh root@101.35.43.9 'docker pull 101.35.43.9:5000/test-jenkinsfile:${version}'"
                 echo "🎉 Pull 101.35.43.9:5000/test-jenkinsfile:${version} Success~ 🎉"
