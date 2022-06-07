@@ -1,41 +1,28 @@
-String buildNumber = env.BUILD_NUMBER;
-String timestamp = new Date().format('yyyy-MM-dd_HH-mm-ss', TimeZone.getTimeZone('Asia/Shanghai'));
-String projectName = env.JOB_NAME.split(/\//)[0];
-String version = "${buildNumber}_${timestamp}_${projectName}";
+def responseJson = new URL("http://101.35.43.9:5000/v2/test-jenkinsfile/tags/list")
+        .getText(requestProperties: ['Content-Type': "application/json"]);
+
+// responseJson: {name:xxx,tags:[tag1,tag2,...]}
+Map response = new groovy.json.JsonSlurperClassic().parseText(responseJson) as Map;
+
+def versionsStr = response.tags.join('\n');
 
 pipeline {
-    // TODO: 此处添加 maven 缓存会导致 jenkins 失败
-//     agent {
-//         docker {
-//             image 'maven:3.8.1-adoptopenjdk-11'
-//             args '-v $HOME/.m2:/root/.m2'
-//             reuseNode true
-//         }
-//     }
     agent any
-    triggers {
-       pollSCM('* * * * *')
-    }
     stages {
-        stage('Test') {
-            agent {
-                docker { image 'circleci/openjdk:8u212-jdk-stretch' }
-            }
-            steps {
-                sh 'mvn clean verify'
-                echo '🎉 Verify Success 🎉'
-            }
-        }
-        stage('Docker Build') {
-            steps {
-                echo 'Starting to build docker image'
-
-                script {
-                     def customImage = docker.build("101.35.43.9:5000/course:${version}")
-                     echo '🎉 Docker Build Success 🎉'
-                     customImage.push();
-                     echo '🎉 Push Success 🎉'
+        stage('Deploy') {
+            input {
+                message "Choose a version"
+                ok "Deploy"
+                parameters {
+                    choice(choices: versionsStr, description: 'version', name: 'version')
                 }
+            }
+            steps {
+                echo "🎉 You choose version: ${version} 🎉"
+                sh "ssh root@101.35.43.9 'docker pull 101.35.43.9:5000/test-jenkinsfile:${version}'"
+                echo "🎉 Pull 101.35.43.9:5000/test-jenkinsfile:${version} Success~ 🎉"
+                sh "ssh root@101.35.43.9 'source /root/project/course/start-docker-container.sh ${version}'"
+                echo "🎉 Restart Success~ 🎉"
             }
         }
     }
