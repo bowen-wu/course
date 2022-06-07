@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Deploy') {
              environment {
-                SSH_CREDS = credentials('jenkins')
+                SSH_CREDS = credentials('f426a4f3-d52e-4737-ad44-65ed0586e7e7')
             }
             input {
                 message "Choose a version"
