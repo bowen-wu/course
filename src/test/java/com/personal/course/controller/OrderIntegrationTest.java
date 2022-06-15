@@ -161,6 +161,21 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void testOrderNotCreatedWhenOrderAlreadyExist() throws IOException, InterruptedException {
+        String testFormComponentHtml = mockData(PaymentTradeQueryResponse.of(Status.PAID, null));
+
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
+        Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
+        Response<OrderWithComponentHtml> twiceOrderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
+        assertEquals(orderWithComponentHtmlResponse.getData().getId(), twiceOrderWithComponentHtmlResponse.getData().getId());
+        assertEquals(orderWithComponentHtmlResponse.getData().getTradeNo(), twiceOrderWithComponentHtmlResponse.getData().getTradeNo());
+
+        get("/order/status?out_trade_no=" + orderWithComponentHtmlResponse.getData().getTradeNo());
+        HttpResponse<String> res = post("/order/" + createdCourseId, "", HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
+        assertEquals(409, res.statusCode());
+    }
+
+    @Test
     public void testGetOrderList() {
 
     }
@@ -178,10 +193,9 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         return orderWithComponentHtmlResponse;
     }
 
-
     private String mockData(PaymentTradeQueryResponse firstPaymentTradeQueryResponse, PaymentTradeQueryResponse... restPaymentTradeQueryResponse) {
         String testFormComponentHtml = "<form></form>";
-        when(paymentService.tradePayInWebPage(anyString(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
+        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
         when(paymentService.getTradeStatusFromPayTradeNo(any(), any(), any())).thenReturn(firstPaymentTradeQueryResponse, restPaymentTradeQueryResponse);
         return testFormComponentHtml;
     }

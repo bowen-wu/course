@@ -1,5 +1,6 @@
 package com.personal.course.controller;
 
+import com.personal.course.configuration.UserContext;
 import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.OrderWithComponentHtml;
 import com.personal.course.entity.PageResponse;
@@ -88,7 +89,7 @@ public class OrderController {
     @PostMapping("/order/{courseId}")
     public Response<OrderWithComponentHtml> placeOrder(@PathVariable("courseId") Integer courseId, HttpServletResponse response) {
         response.setStatus(HttpStatus.CREATED.value());
-        return Response.success(orderService.placeOrder(courseId));
+        return Response.success(orderService.placeOrder(courseId, UserContext.getUser().getId()));
     }
 
     /**
@@ -308,5 +309,13 @@ public class OrderController {
         if (orderBy == null) orderBy = DEFAULT_ORDER_BY;
         if (orderType == null) orderType = DEFAULT_ORDER_TYPE;
         return orderService.getOrderList(pageNum, pageSize, orderType, orderBy, search);
+    }
+
+    /**
+     * 支付宝 notify url
+     */
+    @GetMapping("/order/status")
+    public void getOrderStatus(@RequestParam("out_trade_no") String tradeNo) {
+        orderService.getOrderStatusFromAlipay(tradeNo);
     }
 }

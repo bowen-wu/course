@@ -47,11 +47,17 @@ public class AlipayService implements PaymentService {
      * <script>document.forms[0].submit();</script>
      */
     @Override
-    public TradePayResponse tradePayInWebPage(String tradeNo, int price, String subject, String returnUrl) {
+    public TradePayResponse tradePayInWebPage(String tradeNo, String payTradeNo, int price, String subject, String returnUrl) {
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
+        // TODO: alipay notify url
+        request.setNotifyUrl("http://101.35.43.9:10520/api/v1/order/status");
         request.setReturnUrl(returnUrl);
         JSONObject bizContent = new JSONObject();
-        bizContent.put("out_trade_no", tradeNo);
+        if (payTradeNo != null) {
+            bizContent.put("trade_no", payTradeNo);
+        } else {
+            bizContent.put("out_trade_no", tradeNo);
+        }
         bizContent.put("total_amount", price / 100); // price 单位 分
         bizContent.put("subject", subject);
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");

@@ -16,7 +16,7 @@ public interface PaymentService {
      * </form>
      * <script>document.forms[0].submit();</script>
      */
-    TradePayResponse tradePayInWebPage(String tradeNo, int price, String subject, String returnUrl);
+    TradePayResponse tradePayInWebPage(String tradeNo, String payTradeNo, int price, String subject, String returnUrl);
 
     PaymentTradeQueryResponse getTradeStatusFromPayTradeNo(String payTradeNo, String tradeNo, Status tradeStatus);
 

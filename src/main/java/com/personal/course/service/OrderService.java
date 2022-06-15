@@ -3,7 +3,6 @@ package com.personal.course.service;
 import com.personal.course.configuration.UserContext;
 import com.personal.course.dao.CustomConfigDao;
 import com.personal.course.dao.OrderDao;
-import com.personal.course.entity.DO.Course;
 import com.personal.course.entity.DO.CustomConfig;
 import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.DO.OrderCourse;
@@ -13,6 +12,8 @@ import com.personal.course.entity.OrderWithComponentHtml;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Status;
 import com.personal.course.entity.TradePayResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +29,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
+    private static Logger logger = LoggerFactory.getLogger(OrderService.class);
+
     private final PaymentService paymentService;
     private final CourseService courseService;
     private final OrderDao orderDao;
@@ -40,23 +43,34 @@ public class OrderService {
         this.customConfigDao = customConfigDao;
     }
 
-    public OrderWithComponentHtml placeOrder(Integer courseId) {
+    public OrderWithComponentHtml placeOrder(Integer courseId, Integer userId) {
         OrderCourse course = courseService.getOrderCourseById(courseId);
-        // 生成30位的 tradeNo
-        String tradeNo = "course_" + courseId + "_" + DateTimeFormatter.ofPattern("yyyyMMddHHmmss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now());
+        Order orderInDb = orderDao.findByCourseIdAndUserId(courseId, userId);
+
+        if (orderInDb != null && orderInDb.getStatus() == Status.PAID) {
+            // 已经购买此课程
+            throw HttpException.of(HttpStatus.CONFLICT, "您已经购买此课程！");
+        }
+
+        String tradeNo = orderInDb == null ? "course_" + courseId + "_" + DateTimeFormatter.ofPattern("yyyyMMddHHmmss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now()) : orderInDb.getTradeNo();
+        String payTradeNo = orderInDb == null ? null : orderInDb.getPayTradeNo();
+
         CustomConfig customConfig = customConfigDao.findByName("paymentReturnUrl").orElseThrow(() -> {
             throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 paymentReturnUrl 配置");
         });
-        TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, course.getPrice(), course.getName(), customConfig.getValue());
-        Order pendCreateOrder = new Order();
-        pendCreateOrder.setTradeNo(tradeNo);
-        pendCreateOrder.setCourse(course);
-        pendCreateOrder.setPrice(course.getPrice());
-        pendCreateOrder.setUserId(UserContext.getUser().getId());
-        pendCreateOrder.setStatus(Status.UNPAID);
-        pendCreateOrder.setPayTradeNo(tradePayResponse.getPayTradeNo());
-        Order createdOrder = orderDao.save(pendCreateOrder);
-        return OrderWithComponentHtml.of(createdOrder, tradePayResponse.getFromComponentHtml());
+        TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, payTradeNo, course.getPrice(), course.getName(), customConfig.getValue());
+
+        if (orderInDb == null) {
+            Order pendCreateOrder = new Order();
+            pendCreateOrder.setTradeNo(tradeNo);
+            pendCreateOrder.setCourse(course);
+            pendCreateOrder.setPrice(course.getPrice());
+            pendCreateOrder.setUserId(UserContext.getUser().getId());
+            pendCreateOrder.setStatus(Status.UNPAID);
+            orderInDb = orderDao.save(pendCreateOrder);
+        }
+
+        return OrderWithComponentHtml.of(orderInDb, tradePayResponse.getFromComponentHtml());
     }
 
     public Order getOrderById(Integer orderId) {
@@ -66,7 +80,7 @@ public class OrderService {
             throw HttpException.notFound("请检查订单ID是否正确！");
         }
 
-        // CLOSE 状态的不用去支付宝查询状态
+        // CLOSED 状态的不用去支付宝查询状态
         if (Status.CLOSED.equals(orderInDb.getStatus())) {
             return orderInDb;
         }
@@ -122,6 +136,11 @@ public class OrderService {
         return PageResponse.of(pageNum, pageSize, (int) orderPage.getTotalElements(), "OK", orderList);
     }
 
+    public void getOrderStatusFromAlipay(String tradeNo) {
+        logger.info("notify url tradeNo -> " + tradeNo);
+        orderDao.findByTradeNo(tradeNo).ifPresent(this::queryOrderPayStatus);
+    }
+
     private Order queryOrderPayStatus(Order queryOrder) {
         PaymentTradeQueryResponse paymentTradeQueryResponse = paymentService.getTradeStatusFromPayTradeNo(queryOrder.getPayTradeNo(), queryOrder.getTradeNo(), queryOrder.getStatus());
         Status tradeStatus = paymentTradeQueryResponse.getTradeStatus();
@@ -144,4 +163,5 @@ public class OrderService {
             throw HttpException.forbidden();
         }
     }
+
 }

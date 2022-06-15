@@ -54,6 +54,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
         List<Whitelist> whitelistList = Arrays.asList(
                 Whitelist.of("/api/v1/test", "GET"),
+                Whitelist.of("/api/v1/order/status", "GET"),
                 Whitelist.of("/api/v1/test", "POST"),
                 Whitelist.of("/api/v1/session", "POST"),
                 Whitelist.of("/api/v1/session", "GET"),
