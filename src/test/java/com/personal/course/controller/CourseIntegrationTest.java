@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -187,7 +188,6 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         String testFormComponentHtml = "<form></form>";
         when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
         when(paymentService.getTradeStatusFromPayTradeNo(any(), any(), any())).thenReturn(PaymentTradeQueryResponse.of(Status.PAID, null));
-        when(osClientService.generateSignUrl(anyString())).thenReturn("testUrl");
 
         HttpResponse<String> res = post("/order/1", "", HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
         Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
@@ -198,7 +198,8 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         res = get("/course/1", HttpHeaders.COOKIE, studentCookie);
         Response<CourseVO> getCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
         });
-        assertEquals(Arrays.asList("testUrl", "testUrl", "testUrl", "testUrl"), getCourseResponse.getData().getVideoList().stream().map(VideoBase::getUrl).collect(toList()));
+        assertEquals(Arrays.asList(null, null, null, null), getCourseResponse.getData().getVideoList().stream().map(VideoBase::getUrl).collect(toList()));
+        assertTrue(getCourseResponse.getData().isPurchased());
     }
 
     @Test

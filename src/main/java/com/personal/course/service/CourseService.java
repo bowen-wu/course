@@ -51,7 +51,7 @@ public class CourseService {
         Course pendingCreateCourse = new Course(course);
         pendingCreateCourse.setVideoList(getVideos(course));
         Course courseInDb = courseDao.save(pendingCreateCourse);
-        return courseInDbConvertToCourseVO(courseInDb);
+        return new CourseVO(courseInDb);
     }
 
     private List<Video> getVideos(CourseQuery course) {
@@ -76,7 +76,7 @@ public class CourseService {
         CourseVO courseVo = new CourseVO(courseInDb);
         boolean isPaid = order != null && Status.PAID.equals(order.getStatus());
         courseVo.setPurchased(isPaid);
-        courseVo.setVideoList(courseInDb.getVideoList().stream().map(isPaid ? videoService::videoInDbConvertToVideoVO : VideoVO::new).collect(toList()));
+        courseVo.setVideoList(courseInDb.getVideoList().stream().map(VideoVO::new).collect(toList()));
         return courseVo;
     }
 
@@ -90,7 +90,7 @@ public class CourseService {
         courseInDb.setUpdatedOn(Instant.now());
         courseInDb.setVideoList(getVideos(course));
         Course updatedCourse = courseDao.save(courseInDb);
-        return courseInDbConvertToCourseVO(updatedCourse);
+        return new CourseVO(updatedCourse);
     }
 
     public void deleteCourseById(Integer courseId) {
@@ -110,13 +110,6 @@ public class CourseService {
 
             coursePage = courseDao.findAll(Example.of(course, customExampleMatcher), pageRequest);
         }
-        return PageResponse.of(pageNum, pageSize, (int) coursePage.getTotalElements(), "OK", coursePage.getContent().stream().map(this::courseInDbConvertToCourseVO).collect(toList()));
-    }
-
-    private CourseVO courseInDbConvertToCourseVO(Course courseInDb) {
-        CourseVO courseVo = new CourseVO(courseInDb);
-        List<VideoVO> videoVOList = courseInDb.getVideoList().stream().map(videoService::videoInDbConvertToVideoVO).collect(toList());
-        courseVo.setVideoList(videoVOList);
-        return courseVo;
+        return PageResponse.of(pageNum, pageSize, (int) coursePage.getTotalElements(), "OK", coursePage.getContent().stream().map(CourseVO::new).collect(toList()));
     }
 }

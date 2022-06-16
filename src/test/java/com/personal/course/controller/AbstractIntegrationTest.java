@@ -38,6 +38,7 @@ import java.util.Arrays;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -95,7 +96,7 @@ public abstract class AbstractIntegrationTest {
         assertEquals(pendingCreateCourse.getTeacherName(), createdCourseResponse.getData().getTeacherName());
         assertEquals(pendingCreateCourse.getTeacherDescription(), createdCourseResponse.getData().getTeacherDescription());
         assertEquals(pendingCreateCourse.getPrice(), createdCourseResponse.getData().getPrice());
-        assertEquals(pendingCreateCourse.getVideoIdList(), createdCourseResponse.getData().getVideoList().stream().map(VideoVO::getId).collect(toList()));
+        assertNull(createdCourseResponse.getData().getVideoList());
         assertEquals(Status.OK, createdCourseResponse.getData().getStatus());
         assertNotNull(createdCourseResponse.getData().getId());
 

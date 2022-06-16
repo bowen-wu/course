@@ -163,8 +163,8 @@ public class CourseController {
      * @param courseId 课程ID
      * @return 课程信息
      */
-    @GetMapping("/course/{id}")
-    public Response<CourseVO> getCourse(@PathVariable("id") Integer courseId) {
+    @GetMapping("/course/{courseId}")
+    public Response<CourseVO> getCourse(@PathVariable("courseId") Integer courseId) {
         return Response.success(courseService.getCourse(courseId, UserContext.getUser().getId()));
     }
 

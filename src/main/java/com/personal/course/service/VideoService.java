@@ -1,10 +1,7 @@
 package com.personal.course.service;
 
 import com.personal.course.common.utils.GetKeyFromUrlUtil;
-import com.personal.course.configuration.UserContext;
 import com.personal.course.dao.VideoDao;
-import com.personal.course.entity.DO.Course;
-import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
@@ -13,14 +10,11 @@ import com.personal.course.entity.VO.VideoVO;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.time.Instant;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class VideoService {
@@ -67,7 +61,7 @@ public class VideoService {
         return videoInDbConvertToVideoVO(videoInDb);
     }
 
-    public VideoVO videoInDbConvertToVideoVO(Video videoInDb) {
+    private VideoVO videoInDbConvertToVideoVO(Video videoInDb) {
         VideoVO videoVO = new VideoVO(videoInDb);
         videoVO.setUrl(osClientService.generateSignUrl(videoInDb.getKey()));
         return videoVO;
