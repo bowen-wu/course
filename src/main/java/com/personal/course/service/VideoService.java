@@ -1,11 +1,14 @@
 package com.personal.course.service;
 
 import com.personal.course.common.utils.GetKeyFromUrlUtil;
+import com.personal.course.dao.OrderDao;
 import com.personal.course.dao.VideoDao;
+import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Query.VideoQuery;
+import com.personal.course.entity.Status;
 import com.personal.course.entity.VO.VideoVO;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -20,11 +23,13 @@ import java.time.Instant;
 public class VideoService {
     private final VideoDao videoDao;
     private final OSClientService osClientService;
+    private final OrderDao orderDao;
 
     @Inject
-    public VideoService(VideoDao videoDao, OSClientService osClientService) {
+    public VideoService(VideoDao videoDao, OSClientService osClientService, OrderDao orderDao) {
         this.videoDao = videoDao;
         this.osClientService = osClientService;
+        this.orderDao = orderDao;
     }
 
     public VideoVO createVideo(VideoQuery videoQuery) {
@@ -82,5 +87,13 @@ public class VideoService {
             videoPage = videoDao.findAll(Example.of(video), pageRequest);
         }
         return PageResponse.of(pageNum, pageSize, (int) videoPage.getTotalElements(), "OK", videoPage.getContent());
+    }
+
+    public VideoVO getVideoVoByVideoIdAndCourseId(Integer videoId, Integer courseId, Integer userId) {
+        Order order = orderDao.findByCourseIdAndUserId(courseId, userId);
+        if (order != null && Status.PAID.equals(order.getStatus())) {
+            return getVideoVoById(videoId);
+        }
+        throw HttpException.forbidden();
     }
 }

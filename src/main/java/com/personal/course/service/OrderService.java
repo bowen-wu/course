@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
-    private static Logger logger = LoggerFactory.getLogger(OrderService.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     private final PaymentService paymentService;
     private final CourseService courseService;

@@ -165,6 +165,7 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
         String testFormComponentHtml = mockData(PaymentTradeQueryResponse.of(Status.PAID, null));
 
         String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
+
         Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
         Response<OrderWithComponentHtml> twiceOrderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
         assertEquals(orderWithComponentHtmlResponse.getData().getId(), twiceOrderWithComponentHtmlResponse.getData().getId());

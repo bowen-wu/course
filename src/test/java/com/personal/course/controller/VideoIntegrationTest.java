@@ -1,15 +1,20 @@
 package com.personal.course.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.personal.course.entity.DTO.PaymentTradeQueryResponse;
+import com.personal.course.entity.OrderWithComponentHtml;
 import com.personal.course.entity.Query.VideoQuery;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
+import com.personal.course.entity.TradePayResponse;
 import com.personal.course.entity.VO.UsernameAndPassword;
 import com.personal.course.entity.VO.VideoVO;
+import com.personal.course.service.PaymentService;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -27,9 +32,14 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 class VideoIntegrationTest extends AbstractIntegrationTest {
+    @MockBean
+    PaymentService paymentService;
+
     private final String testKey = "test.mp4";
     private final String testUrl = "http://course-api-doc.oss-cn-hangzhou.aliyuncs.com/" + testKey + "?Expires=1652001437&OSSAccessKeyId=TMP.3KhT7CnCWSDUdBwvfMkRs4KWoFEEskoAUdD3dn2iabHf4uDQNSnKz1bgJrdNeqZXb9xULBBkcqUkGkHYUVDSQhQ5ERexvt&Signature=WtAw6K4Ome2v0w3HIxdCP0QnE1o%3D";
     private final String updatedTestKey = "MTB.mp4";
@@ -195,5 +205,29 @@ class VideoIntegrationTest extends AbstractIntegrationTest {
         BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(() -> Channels.newInputStream(pipe.source()));
 
         return post("/video/upload", bodyPublisher, HttpHeaders.CONTENT_TYPE, httpEntity.getContentType().getValue(), HttpHeaders.COOKIE, adminCookie);
+    }
+
+    @Test
+    public void canGetUrlWhenPaid() throws IOException, InterruptedException {
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
+        String testFormComponentHtml = "<form></form>";
+        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
+        when(paymentService.getTradeStatusFromPayTradeNo(any(), any(), any())).thenReturn(PaymentTradeQueryResponse.of(Status.PAID, null));
+        when(osClientService.generateSignUrl(anyString())).thenReturn(testUrl);
+
+        HttpResponse<String> res = post("/order/1", "", HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
+        Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+
+        res = get("/video/1/2", HttpHeaders.COOKIE, studentCookie);
+        assertEquals(403, res.statusCode());
+
+        get("/order/status?out_trade_no=" + orderWithComponentHtmlResponse.getData().getTradeNo());
+
+        res = get("/video/1/2", HttpHeaders.COOKIE, studentCookie);
+        assertEquals(200, res.statusCode());
+        Response<VideoVO> getVideoResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertEquals(testUrl, getVideoResponse.getData().getUrl());
     }
 }

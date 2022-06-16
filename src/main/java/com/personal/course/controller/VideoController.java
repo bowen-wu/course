@@ -1,6 +1,7 @@
 package com.personal.course.controller;
 
 import com.personal.course.annotation.ManagementCourse;
+import com.personal.course.configuration.UserContext;
 import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
@@ -308,6 +309,69 @@ public class VideoController {
     @ManagementCourse
     public Response<VideoVO> getVideoById(@PathVariable("id") Integer videoId) {
         return Response.success(videoService.getVideoVoById(videoId));
+    }
+
+    /**
+     * @api {get} /api/v1/video/{courseId}/{videoId} 用于学生获取视频信息
+     * @apiName getVideoByIdAndCourseId
+     * @apiGroup Video Management
+     *
+     * @apiHeader {String} Accept application/json
+     * @apiHeader {String} Content-Type application/json
+     *
+     * @apiParamExample Request-Example:
+     *          GET /api/v1/video/1/2
+     *
+     * @apiSuccess (Success 200) {Video} data 视频信息
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *         "id": 12345,
+     *         "name": "第一课",
+     *         "description": "这是第一课的视频",
+     *         "url": "https://oos.aliyun.com/xxx"
+     *     }
+     *
+     * @apiError 400 Bad Request 若用户的请求包含错误
+     *
+     * @apiErrorExample Error-Response:
+     *     HTTP/1.1 400 Bad Request
+     *     {
+     *       "message": "Bad Request"
+     *     }
+     *
+     * @apiError 401 Unauthorized 若未登录
+     *
+     * @apiErrorExample Error-Response:
+     *     HTTP/1.1 401 Unauthorized
+     *     {
+     *       "message": "用户未登录"
+     *     }
+     *
+     * @apiError 403 Forbidden 若没有权限
+     *
+     * @apiErrorExample Error-Response:
+     *     HTTP/1.1 403 Forbidden
+     *     {
+     *       "message": "无权限"
+     *     }
+     * @apiError 404 Not Found 若视频未找到
+     *
+     * @apiErrorExample Error-Response:
+     *     HTTP/1.1 404 Not Found
+     *     {
+     *       "message": "没有该视频"
+     *     }
+     *
+     */
+    /**
+     * @param videoId  视频ID
+     * @param courseId 课程ID
+     * @return 视频信息
+     */
+    @GetMapping("/video/{courseId}/{videoId}")
+    public Response<VideoVO> getVideoByIdAndCourseId(@PathVariable("videoId") Integer videoId, @PathVariable("courseId") Integer courseId) {
+        return Response.success(videoService.getVideoVoByVideoIdAndCourseId(videoId, courseId, UserContext.getUser().getId()));
     }
 
     /**
