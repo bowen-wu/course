@@ -2,13 +2,19 @@ package com.personal.course.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.personal.course.entity.DO.Course;
+import com.personal.course.entity.DTO.PaymentTradeQueryResponse;
+import com.personal.course.entity.OrderWithComponentHtml;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Query.CourseQuery;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.Status;
+import com.personal.course.entity.TradePayResponse;
 import com.personal.course.entity.VO.CourseVO;
 import com.personal.course.entity.VO.UsernameAndPassword;
+import com.personal.course.entity.base.VideoBase;
+import com.personal.course.service.PaymentService;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -21,8 +27,14 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 class CourseIntegrationTest extends AbstractIntegrationTest {
+    @MockBean
+    PaymentService paymentService;
 
     @Test
     public void testCourseProcess() throws IOException, InterruptedException {
@@ -165,5 +177,52 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         pendingCreateCourse.setTeacherName("Jack");
         pendingCreateCourse.setPrice(null);
         exception400("/course", pendingCreateCourse, "课程价格不能为空");
+    }
+
+
+    @Test
+    public void getCourseDetailVideoUrlIsExistWhenPaid() throws IOException, InterruptedException {
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
+
+        String testFormComponentHtml = "<form></form>";
+        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
+        when(paymentService.getTradeStatusFromPayTradeNo(any(), any(), any())).thenReturn(PaymentTradeQueryResponse.of(Status.PAID, null));
+        when(osClientService.generateSignUrl(anyString())).thenReturn("testUrl");
+
+        HttpResponse<String> res = post("/order/1", "", HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
+        Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        get("/order/status?out_trade_no=" + orderWithComponentHtmlResponse.getData().getTradeNo());
+
+        // 课程1有4个视频
+        res = get("/course/1", HttpHeaders.COOKIE, studentCookie);
+        Response<CourseVO> getCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertEquals(Arrays.asList("testUrl", "testUrl", "testUrl", "testUrl"), getCourseResponse.getData().getVideoList().stream().map(VideoBase::getUrl).collect(toList()));
+    }
+
+    @Test
+    public void getCourseDetailVideoUrlIsNullWhenUnpaid() throws IOException, InterruptedException {
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
+
+        // 课程1有4个视频
+        HttpResponse<String> res = get("/course/1", HttpHeaders.COOKIE, studentCookie);
+        Response<CourseVO> getCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertEquals(Arrays.asList(null, null, null, null), getCourseResponse.getData().getVideoList().stream().map(VideoBase::getUrl).collect(toList()));
+
+        String testFormComponentHtml = "<form></form>";
+        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
+
+        res = post("/order/1", "", HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
+        assertEquals(201, res.statusCode());
+        Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertEquals(Status.UNPAID, orderWithComponentHtmlResponse.getData().getStatus());
+
+        res = get("/course/1", HttpHeaders.COOKIE, studentCookie);
+        getCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertEquals(Arrays.asList(null, null, null, null), getCourseResponse.getData().getVideoList().stream().map(VideoBase::getUrl).collect(toList()));
     }
 }

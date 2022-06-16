@@ -11,6 +11,7 @@ import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
 import com.personal.course.entity.Query.CourseQuery;
+import com.personal.course.entity.Status;
 import com.personal.course.entity.VO.CourseVO;
 import com.personal.course.entity.VO.VideoVO;
 import org.springframework.data.domain.Example;
@@ -73,11 +74,9 @@ public class CourseService {
         Course courseInDb = getCourseById(courseId);
         Order order = orderDao.findByCourseIdAndUserId(courseId, userId);
         CourseVO courseVo = new CourseVO(courseInDb);
-        if (order != null) {
-            courseVo.setPurchased(true);
-            List<VideoVO> videoVOList = courseInDb.getVideoList().stream().map(videoService::videoInDbConvertToVideoVO).collect(toList());
-            courseVo.setVideoList(videoVOList);
-        }
+        boolean isPaid = order != null && Status.PAID.equals(order.getStatus());
+        courseVo.setPurchased(isPaid);
+        courseVo.setVideoList(courseInDb.getVideoList().stream().map(isPaid ? videoService::videoInDbConvertToVideoVO : VideoVO::new).collect(toList()));
         return courseVo;
     }
 
