@@ -6,7 +6,6 @@ import com.personal.course.entity.HttpException;
 import com.personal.course.entity.Response;
 import com.personal.course.entity.VO.UsernameAndPassword;
 import com.personal.course.service.AuthService;
-import com.personal.course.service.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +19,6 @@ import javax.inject.Inject;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
 
 import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 

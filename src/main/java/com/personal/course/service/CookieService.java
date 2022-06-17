@@ -27,6 +27,8 @@ public class CookieService {
     public Cookie generatorCookie(User loginUser) {
         String cookieValue = UUID.randomUUID().toString();
         Cookie cookie = getCookie(cookieValue);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
         Session session = new Session(cookieValue, loginUser);
         sessionService.deleteSessionByUserId(loginUser.getId());
         sessionService.save(session);

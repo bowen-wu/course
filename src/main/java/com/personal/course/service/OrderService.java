@@ -1,5 +1,6 @@
 package com.personal.course.service;
 
+import com.personal.course.common.utils.Schedule;
 import com.personal.course.configuration.UserContext;
 import com.personal.course.dao.CustomConfigDao;
 import com.personal.course.dao.OrderDao;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,12 +37,14 @@ public class OrderService {
     private final CourseService courseService;
     private final OrderDao orderDao;
     private final CustomConfigDao customConfigDao;
+    private final Schedule schedule;
 
     public OrderService(PaymentService paymentService, CourseService courseService, OrderDao orderDao, CustomConfigDao customConfigDao) {
         this.paymentService = paymentService;
         this.courseService = courseService;
         this.orderDao = orderDao;
         this.customConfigDao = customConfigDao;
+        this.schedule = new Schedule();
     }
 
     public OrderWithComponentHtml placeOrder(Integer courseId, Integer userId) {
@@ -58,6 +62,7 @@ public class OrderService {
         CustomConfig customConfig = customConfigDao.findByName("paymentReturnUrl").orElseThrow(() -> {
             throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 paymentReturnUrl 配置");
         });
+
         TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, payTradeNo, course.getPrice(), course.getName(), customConfig.getValue());
 
         if (orderInDb == null) {
@@ -69,6 +74,12 @@ public class OrderService {
             pendCreateOrder.setStatus(Status.UNPAID);
             orderInDb = orderDao.save(pendCreateOrder);
         }
+
+        Order finalOrderInDb = orderInDb;
+        schedule.timer(() -> {
+            logger.info("Auto get order status. tradeNo -> " + finalOrderInDb.getTradeNo());
+            queryOrderPayStatus(finalOrderInDb);
+        }, 15 * 60 + 30, TimeUnit.SECONDS);
 
         return OrderWithComponentHtml.of(orderInDb, tradePayResponse.getFromComponentHtml());
     }

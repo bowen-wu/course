@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AuthInterceptor implements HandlerInterceptor {
     public static String COOKIE_NAME = "COURSE_APP_SESSION_ID";
@@ -38,13 +39,19 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // get User & save user info to ThreadLocal
         if (request.getCookies() != null) {
+            List<String> cookieValueList = Arrays.stream(request.getCookies())
+                    .filter(item -> item.getName().equals(COOKIE_NAME))
+                    .map(Cookie::getValue).collect(Collectors.toList());
+
             if (request.getRequestURI().startsWith("/api/v1/session") && request.getMethod().equals("POST")) {
-                // 如果用户带着 cookie 访问登录接口
-                authService.deleteSession(request);
+                // 如果用户带着 cookie 访问登录接口 => 将带过来的 cookie setMaxAge(0)
+                for (String cookieValue : cookieValueList) {
+                    Cookie cookie = new Cookie(COOKIE_NAME, cookieValue);
+                    cookie.setMaxAge(0);
+                    response.addCookie(cookie);
+                }
             } else {
-                Arrays.stream(request.getCookies())
-                        .filter(item -> item.getName().equals(COOKIE_NAME))
-                        .map(Cookie::getValue)
+                cookieValueList.stream()
                         .findFirst()
                         .map(cookieValue -> cookieService.updateCookieExpire(cookieValue, response))
                         .flatMap(sessionService::getSessionByCookie)
