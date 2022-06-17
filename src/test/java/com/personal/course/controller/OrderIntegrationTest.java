@@ -1,6 +1,8 @@
 package com.personal.course.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.personal.course.dao.CustomConfigDao;
+import com.personal.course.entity.DO.CustomConfig;
 import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.DTO.PaymentTradeQueryResponse;
 import com.personal.course.entity.OrderWithComponentHtml;
@@ -25,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OrderIntegrationTest extends AbstractIntegrationTest {
@@ -196,8 +200,24 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
 
     private String mockData(PaymentTradeQueryResponse firstPaymentTradeQueryResponse, PaymentTradeQueryResponse... restPaymentTradeQueryResponse) {
         String testFormComponentHtml = "<form></form>";
-        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
+        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
         when(paymentService.getTradeStatusFromPayTradeNo(any(), any(), any())).thenReturn(firstPaymentTradeQueryResponse, restPaymentTradeQueryResponse);
         return testFormComponentHtml;
+    }
+
+    @Test
+    public void testTimingGetOrderStatus() throws IOException, InterruptedException {
+        // 下单之后 预期在 delay 时间后 paymentService.getTradeStatusFromPayTradeNo 方法被调用
+        String delay = "2";
+        String adminCookie = getAdminCookie();
+        patch("/customConfig", objectMapper.writeValueAsString(new CustomConfig("paymentTimeExpire", delay)), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, adminCookie);
+
+        String testFormComponentHtml = mockData(PaymentTradeQueryResponse.of(Status.PAID, null));
+
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
+        Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
+
+        Thread.sleep((Long.parseLong(delay) * 60 + 15) * 1000);
+        verify(paymentService, times(1)).getTradeStatusFromPayTradeNo(orderWithComponentHtmlResponse.getData().getPayTradeNo(), orderWithComponentHtmlResponse.getData().getTradeNo(), orderWithComponentHtmlResponse.getData().getStatus());
     }
 }

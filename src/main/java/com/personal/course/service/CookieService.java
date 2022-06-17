@@ -4,6 +4,8 @@ import com.personal.course.dao.CustomConfigDao;
 import com.personal.course.entity.DO.CustomConfig;
 import com.personal.course.entity.DO.Session;
 import com.personal.course.entity.DO.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -15,6 +17,8 @@ import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 
 @Service
 public class CookieService {
+    private static final Logger logger = LoggerFactory.getLogger(CookieService.class);
+
     private final CustomConfigDao customConfigDao;
     private final SessionService sessionService;
 
@@ -44,13 +48,13 @@ public class CookieService {
     private Cookie getCookie(String cookieValue) {
         Cookie cookie = new Cookie(COOKIE_NAME, cookieValue);
         CustomConfig customConfig = customConfigDao.findByName("cookieMaxAge").orElseThrow(() -> {
-            // TODO: 配置报错信息
+            logger.error("在数据库 CUSTOM_CONFIG 表中没有 cookieMaxAge 配置");
             throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 cookieMaxAge 配置");
         });
         try {
             cookie.setMaxAge(Integer.parseInt(customConfig.getValue()));
         } catch (NumberFormatException e) {
-            // TODO: 配置报错信息
+            logger.warn("cookie max age 使用默认值 1800，30min");
             e.printStackTrace();
             // 默认值：30min
             cookie.setMaxAge(1800);

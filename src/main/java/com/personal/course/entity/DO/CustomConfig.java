@@ -9,6 +9,14 @@ public class CustomConfig extends BaseEntity {
     private String name;
     private String value;
 
+    public CustomConfig() {
+    }
+
+    public CustomConfig(String name, String value) {
+        this.name = name;
+        this.value = value;
+    }
+
     public String getName() {
         return name;
     }

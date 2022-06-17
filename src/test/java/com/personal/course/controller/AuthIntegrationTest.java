@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+import javax.servlet.http.Cookie;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.http.HttpResponse;
@@ -142,7 +143,11 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
         String studentCookie = getUserCookie(usernameAndPassword);
         HttpResponse<String> response = post("/session", objectMapper.writeValueAsString(usernameAndPassword), HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
         assertEquals(200, response.statusCode());
-        String cookie = response.headers().allValues(HttpHeaders.SET_COOKIE).get(0);
-        assertNotEquals(studentCookie.split(";")[0].split("=")[1], cookie.split(";")[0].split("=")[1]);
+        String expiredCookie = response.headers().allValues(HttpHeaders.SET_COOKIE).get(0);
+        String validCookie = response.headers().allValues(HttpHeaders.SET_COOKIE).get(1);
+        assertEquals(2, response.headers().allValues(HttpHeaders.SET_COOKIE).size());
+        assertEquals(studentCookie.split(";")[0].split("=")[1], expiredCookie.split(";")[0].split("=")[1]);
+        assertEquals(0, Integer.parseInt(expiredCookie.split(";")[1].split("=")[1]));
+        assertNotEquals(0, Integer.parseInt(validCookie.split(";")[1].split("=")[1]));
     }
 }

@@ -22,6 +22,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -59,11 +60,20 @@ public class OrderService {
         String tradeNo = orderInDb == null ? "course_" + courseId + "_" + DateTimeFormatter.ofPattern("yyyyMMddHHmmss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now()) : orderInDb.getTradeNo();
         String payTradeNo = orderInDb == null ? null : orderInDb.getPayTradeNo();
 
-        CustomConfig customConfig = customConfigDao.findByName("paymentReturnUrl").orElseThrow(() -> {
+        CustomConfig paymentReturnUrlConfig = customConfigDao.findByName("paymentReturnUrl").orElseThrow(() -> {
             throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 paymentReturnUrl 配置");
         });
 
-        TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, payTradeNo, course.getPrice(), course.getName(), customConfig.getValue());
+        CustomConfig paymentNotifyUrlConfig = customConfigDao.findByName("paymentNotifyUrl").orElseThrow(() -> {
+            throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 paymentNotifyUrl 配置");
+        });
+
+        CustomConfig paymentTimeExpireConfig = customConfigDao.findByName("paymentTimeExpire").orElseThrow(() -> {
+            throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 paymentNotifyUrl 配置");
+        });
+
+        String expireTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now().plus(Duration.ofMinutes(Integer.parseInt(paymentTimeExpireConfig.getValue()))));
+        TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, payTradeNo, course.getPrice(), course.getName(), paymentReturnUrlConfig.getValue(), paymentNotifyUrlConfig.getValue(), expireTime);
 
         if (orderInDb == null) {
             Order pendCreateOrder = new Order();
@@ -77,9 +87,10 @@ public class OrderService {
 
         Order finalOrderInDb = orderInDb;
         schedule.timer(() -> {
+            // 多余订单过期10s去查询 => 例： 订单过期时间为15min，15min10s后去查询订单状态
             logger.info("Auto get order status. tradeNo -> " + finalOrderInDb.getTradeNo());
-            queryOrderPayStatus(finalOrderInDb);
-        }, 15 * 60 + 30, TimeUnit.SECONDS);
+            queryOrderPayStatus(orderDao.findById(finalOrderInDb.getId()).orElseThrow(() -> HttpException.notFound("请检查订单ID是否正确！")));
+        }, (Long.parseLong(paymentTimeExpireConfig.getValue()) * 60) + 10, TimeUnit.SECONDS);
 
         return OrderWithComponentHtml.of(orderInDb, tradePayResponse.getFromComponentHtml());
     }

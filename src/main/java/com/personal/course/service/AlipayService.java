@@ -47,10 +47,9 @@ public class AlipayService implements PaymentService {
      * <script>document.forms[0].submit();</script>
      */
     @Override
-    public TradePayResponse tradePayInWebPage(String tradeNo, String payTradeNo, int price, String subject, String returnUrl) {
+    public TradePayResponse tradePayInWebPage(String tradeNo, String payTradeNo, int price, String subject, String returnUrl, String notifyUrl, String expireTime) {
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
-        // TODO: alipay notify url
-        request.setNotifyUrl("http://101.35.43.9:10520/api/v1/order/status");
+        request.setNotifyUrl(notifyUrl);
         request.setReturnUrl(returnUrl);
         JSONObject bizContent = new JSONObject();
         if (payTradeNo != null) {
@@ -61,10 +60,8 @@ public class AlipayService implements PaymentService {
         bizContent.put("total_amount", price / 100); // price 单位 分
         bizContent.put("subject", subject);
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
+        bizContent.put("time_expire", expireTime);
 
-        // 15 分钟付款时间
-        String after15Minutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now().plus(Duration.ofMinutes(15)));
-        bizContent.put("time_expire", after15Minutes);
         request.setBizContent(bizContent.toString());
         AlipayTradePagePayResponse response;
         try {

@@ -186,7 +186,7 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
 
         String testFormComponentHtml = "<form></form>";
-        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
+        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
         when(paymentService.getTradeStatusFromPayTradeNo(any(), any(), any())).thenReturn(PaymentTradeQueryResponse.of(Status.PAID, null));
 
         HttpResponse<String> res = post("/order/1", "", HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
@@ -213,7 +213,7 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Arrays.asList(null, null, null, null), getCourseResponse.getData().getVideoList().stream().map(VideoBase::getUrl).collect(toList()));
 
         String testFormComponentHtml = "<form></form>";
-        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
+        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
 
         res = post("/order/1", "", HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE, HttpHeaders.COOKIE, studentCookie);
         assertEquals(201, res.statusCode());

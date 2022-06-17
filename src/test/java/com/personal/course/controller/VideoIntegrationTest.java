@@ -211,7 +211,7 @@ class VideoIntegrationTest extends AbstractIntegrationTest {
     public void canGetUrlWhenPaid() throws IOException, InterruptedException {
         String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
         String testFormComponentHtml = "<form></form>";
-        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
+        when(paymentService.tradePayInWebPage(anyString(), any(), anyInt(), anyString(), anyString(), anyString(), anyString())).thenReturn(TradePayResponse.of(testFormComponentHtml, null));
         when(paymentService.getTradeStatusFromPayTradeNo(any(), any(), any())).thenReturn(PaymentTradeQueryResponse.of(Status.PAID, null));
         when(osClientService.generateSignUrl(anyString())).thenReturn(testUrl);
 
