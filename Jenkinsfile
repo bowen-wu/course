@@ -1,6 +1,6 @@
 def dockerRegistryIp = "101.35.43.9";
 def projectName = "course";
-def jenkinsSSHCredentialId = "cbdf5236-195e-400c-b413-5b5f791aa19e";
+def jenkinsSSHCredentialId = "ff2bce9d-8d7d-4b9e-b0a0-82dfe40c9cd7";
 def responseJson = new URL("http://${dockerRegistryIp}:5000/v2/${projectName}/tags/list").getText(requestProperties: ['Content-Type': "application/json"]);
 
 // responseJson: {name:xxx,tags:[tag1,tag2,...]}
