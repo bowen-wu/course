@@ -7,6 +7,7 @@ import com.personal.course.dao.OrderDao;
 import com.personal.course.entity.DO.CustomConfig;
 import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.DO.OrderCourse;
+import com.personal.course.entity.DO.Role;
 import com.personal.course.entity.DTO.PaymentTradeQueryResponse;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.OrderWithComponentHtml;
@@ -57,8 +58,9 @@ public class OrderService {
             throw HttpException.of(HttpStatus.CONFLICT, "您已经购买此课程！");
         }
 
-        String tradeNo = orderInDb == null ? "course_" + courseId + "_" + DateTimeFormatter.ofPattern("yyyyMMddHHmmss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now()) : orderInDb.getTradeNo();
-        String payTradeNo = orderInDb == null ? null : orderInDb.getPayTradeNo();
+        boolean isNotCreateOrder = orderInDb != null && !Status.DELETED.equals(orderInDb.getStatus());
+        String tradeNo = isNotCreateOrder ? orderInDb.getTradeNo() : "course_" + courseId + "_" + DateTimeFormatter.ofPattern("yyyyMMddHHmmss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now());
+        String payTradeNo = isNotCreateOrder ? orderInDb.getPayTradeNo() : null;
 
         CustomConfig paymentReturnUrlConfig = customConfigDao.findByName("paymentReturnUrl").orElseThrow(() -> {
             throw new RuntimeException("在数据库 CUSTOM_CONFIG 表中没有 paymentReturnUrl 配置");
@@ -75,7 +77,7 @@ public class OrderService {
         String expireTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("Asia/Shanghai")).format(Instant.now().plus(Duration.ofMinutes(Integer.parseInt(paymentTimeExpireConfig.getValue()))));
         TradePayResponse tradePayResponse = paymentService.tradePayInWebPage(tradeNo, payTradeNo, course.getPrice(), course.getName(), paymentReturnUrlConfig.getValue(), paymentNotifyUrlConfig.getValue(), expireTime);
 
-        if (orderInDb == null) {
+        if (!isNotCreateOrder) {
             Order pendCreateOrder = new Order();
             pendCreateOrder.setTradeNo(tradeNo);
             pendCreateOrder.setCourse(course);
@@ -97,7 +99,7 @@ public class OrderService {
 
     public Order getOrderById(Integer orderId) {
         Order orderInDb = orderDao.findById(orderId).orElseThrow(() -> HttpException.notFound("请检查订单ID是否正确！"));
-        checkIsOwnerOrder(orderInDb);
+        checkIsOwnerOrderOrIsAdmin(orderInDb);
         if (Status.DELETED.equals(orderInDb.getStatus())) {
             throw HttpException.notFound("请检查订单ID是否正确！");
         }
@@ -180,8 +182,11 @@ public class OrderService {
         return queryOrder;
     }
 
-    private void checkIsOwnerOrder(Order orderInDb) {
-        if (!UserContext.getUser().getId().equals(orderInDb.getUserId())) {
+    private void checkIsOwnerOrderOrIsAdmin(Order orderInDb) {
+        boolean isAdmin = UserContext.getUser().getRoles().stream()
+                .map(Role::getName)
+                .anyMatch("admin"::equals);
+        if (!isAdmin && !UserContext.getUser().getId().equals(orderInDb.getUserId())) {
             throw HttpException.forbidden();
         }
     }

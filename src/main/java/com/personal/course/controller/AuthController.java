@@ -19,6 +19,9 @@ import javax.inject.Inject;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.personal.course.configuration.AuthInterceptor.COOKIE_NAME;
 
@@ -87,6 +90,7 @@ public class AuthController {
         response.setStatus(HttpStatus.CREATED.value());
         return Response.success(authService.registerUser(usernameAndPassword));
     }
+
 
     /**
      * @api {post} /api/v1/session 登录
@@ -216,9 +220,18 @@ public class AuthController {
             throw HttpException.unauthorized("未登录");
         }
 
-        Cookie cookie = new Cookie(COOKIE_NAME, null);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        List<String> cookieValueList = Arrays.stream(request.getCookies())
+                .filter(item -> item.getName().equals(COOKIE_NAME))
+                .map(Cookie::getValue)
+                .distinct()
+                .collect(Collectors.toList());
+
+        for (String cookieValue : cookieValueList) {
+            Cookie cookie = new Cookie(COOKIE_NAME, cookieValue);
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);
+        }
+
         response.setStatus(HttpStatus.NO_CONTENT.value());
     }
 

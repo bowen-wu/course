@@ -31,47 +31,57 @@ public class AuthInterceptor implements HandlerInterceptor {
         this.authService = authService;
     }
 
+    private void deleteCookie(HttpServletRequest request, HttpServletResponse response) {
+        authService.deleteSession(request);
+
+        List<String> cookieValueList = Arrays.stream(request.getCookies()).filter(item -> item.getName().equals(COOKIE_NAME)).map(Cookie::getValue).distinct().collect(Collectors.toList());
+
+        for (String cookieValue : cookieValueList) {
+            Cookie cookie = new Cookie(COOKIE_NAME, cookieValue);
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);
+        }
+    }
+
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (!request.getRequestURI().startsWith("/api/v1")) {
             return true;
         }
 
         // get User & save user info to ThreadLocal
         if (request.getCookies() != null) {
-            List<String> cookieValueList = Arrays.stream(request.getCookies())
-                    .filter(item -> item.getName().equals(COOKIE_NAME))
-                    .map(Cookie::getValue).collect(Collectors.toList());
+            boolean isLogout = request.getRequestURI().startsWith("/api/v1/session") && request.getMethod().equals("DELETE");
+
 
             if (request.getRequestURI().startsWith("/api/v1/session") && request.getMethod().equals("POST")) {
                 // 如果用户带着 cookie 访问登录接口 => 将带过来的 cookie setMaxAge(0)
-                for (String cookieValue : cookieValueList) {
-                    Cookie cookie = new Cookie(COOKIE_NAME, cookieValue);
-                    cookie.setMaxAge(0);
-                    response.addCookie(cookie);
-                }
+                deleteCookie(request, response);
             } else {
-                cookieValueList.stream()
-                        .findFirst()
-                        .map(cookieValue -> cookieService.updateCookieExpire(cookieValue, response))
-                        .flatMap(sessionService::getSessionByCookie)
-                        .map(Session::getUser)
-                        .ifPresent(UserContext::setUser);
+                List<String> cookieValueList = Arrays.stream(request.getCookies()).filter(item -> item.getName().equals(COOKIE_NAME)).map(Cookie::getValue).distinct().collect(Collectors.toList());
+                if (cookieValueList.size() > 1) {
+                    // 如果用户带着多个 cookie 访问 => delete cookie + 401
+                    deleteCookie(request, response);
+                    throw HttpException.unauthorized("请登录!");
+                } else {
+                    cookieValueList.stream()
+                            .findFirst()
+                            .map(cookieValue -> isLogout ? cookieValue : cookieService.updateCookieExpire(cookieValue, response))
+                            .flatMap(sessionService::getSessionByCookie)
+                            .map(Session::getUser)
+                            .ifPresent(UserContext::setUser);
+                }
+
             }
         }
-        List<Whitelist> whitelistList = Arrays.asList(
-                Whitelist.of("/api/v1/test", "GET"),
-                Whitelist.of("/api/v1/order/status", "GET"),
-                Whitelist.of("/api/v1/test", "POST"),
-                Whitelist.of("/api/v1/session", "POST"),
-                Whitelist.of("/api/v1/session", "GET"),
-                Whitelist.of("/api/v1/user", "POST"));
+        List<Whitelist> whitelistList = Arrays.asList(Whitelist.of("/api/v1/test", "GET"), Whitelist.of("/api/v1/order/status", "GET"), Whitelist.of("/api/v1/test", "POST"), Whitelist.of("/api/v1/session", "POST"), Whitelist.of("/api/v1/session", "GET"), Whitelist.of("/api/v1/user", "POST"));
+
         if (UserContext.getUser() == null) {
             whitelistList.stream()
                     .filter(whitelist -> whitelist.getUri().equals(request.getRequestURI()) && whitelist.getMethod().equals(request.getMethod()))
                     .findAny()
                     .orElseThrow(() -> {
-                        authService.deleteSession(request);
+                        deleteCookie(request, response);
                         return HttpException.unauthorized("请登录!");
                     });
         }
@@ -80,7 +90,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, @Nullable Exception ex) throws Exception {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, @Nullable Exception ex) {
         // remove user info from ThreadLocal
         UserContext.removeUser();
     }

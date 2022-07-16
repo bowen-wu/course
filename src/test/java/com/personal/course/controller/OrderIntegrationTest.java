@@ -1,7 +1,6 @@
 package com.personal.course.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.personal.course.dao.CustomConfigDao;
 import com.personal.course.entity.DO.CustomConfig;
 import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.DTO.PaymentTradeQueryResponse;
@@ -219,5 +218,29 @@ public class OrderIntegrationTest extends AbstractIntegrationTest {
 
         Thread.sleep((Long.parseLong(delay) * 60 + 15) * 1000);
         verify(paymentService, times(1)).getTradeStatusFromPayTradeNo(orderWithComponentHtmlResponse.getData().getPayTradeNo(), orderWithComponentHtmlResponse.getData().getTradeNo(), orderWithComponentHtmlResponse.getData().getStatus());
+    }
+
+    @Test
+    public void generatorNewTradeNoWhenOrderStatusIsDeleted() throws IOException, InterruptedException {
+        String testFormComponentHtml = mockData(PaymentTradeQueryResponse.of(Status.PAID, null));
+
+        String studentCookie = getUserCookie(new UsernameAndPassword("student", "student"));
+        Response<OrderWithComponentHtml> orderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
+
+        String createdTradeNo = orderWithComponentHtmlResponse.getData().getTradeNo();
+        Integer createdOrderId = orderWithComponentHtmlResponse.getData().getId();
+
+        Response<OrderWithComponentHtml> secondOrderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
+        assertEquals(createdOrderId, secondOrderWithComponentHtmlResponse.getData().getId());
+        assertEquals(createdTradeNo, secondOrderWithComponentHtmlResponse.getData().getTradeNo());
+
+        HttpResponse<String> res = delete("/order/" + createdOrderId, HttpHeaders.COOKIE, studentCookie);
+        assertEquals(204, res.statusCode());
+
+        Thread.sleep(1000);
+
+        Response<OrderWithComponentHtml> thirdOrderWithComponentHtmlResponse = placeOrder(createdCourseId, testFormComponentHtml, studentCookie, coursePrice);
+        assertNotEquals(createdOrderId, thirdOrderWithComponentHtmlResponse.getData().getId());
+        assertNotEquals(createdTradeNo, thirdOrderWithComponentHtmlResponse.getData().getTradeNo());
     }
 }

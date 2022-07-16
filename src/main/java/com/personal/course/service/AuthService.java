@@ -76,7 +76,10 @@ public class AuthService {
 
     public void deleteSession(HttpServletRequest request) {
         if (request.getCookies() != null) {
-            Arrays.stream(request.getCookies()).filter(item -> item.getName().equals(COOKIE_NAME)).map(Cookie::getValue).findFirst().ifPresent(sessionService::deleteSessionByCookie);
+            Arrays.stream(request.getCookies()).filter(item -> COOKIE_NAME.equals(item.getName()))
+                    .map(Cookie::getValue)
+                    .filter(item -> !item.isEmpty())
+                    .forEach(sessionService::deleteSessionByCookie);
         }
     }
 }

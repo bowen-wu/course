@@ -1,5 +1,6 @@
 package com.personal.course.service;
 
+import com.personal.course.configuration.UserContext;
 import com.personal.course.dao.CourseDao;
 import com.personal.course.dao.OrderCourseDao;
 import com.personal.course.dao.OrderDao;
@@ -7,6 +8,8 @@ import com.personal.course.dao.VideoDao;
 import com.personal.course.entity.DO.Course;
 import com.personal.course.entity.DO.Order;
 import com.personal.course.entity.DO.OrderCourse;
+import com.personal.course.entity.DO.Permission;
+import com.personal.course.entity.DO.Role;
 import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,15 +40,13 @@ public class CourseService {
     private final CourseDao courseDao;
     private final OrderCourseDao orderCourseDao;
     private final OrderDao orderDao;
-    private final VideoService videoService;
 
     @Inject
-    public CourseService(VideoDao videoDao, CourseDao courseDao, OrderCourseDao orderCourseDao, OrderDao orderDao, VideoService videoService) {
+    public CourseService(VideoDao videoDao, CourseDao courseDao, OrderCourseDao orderCourseDao, OrderDao orderDao) {
         this.videoDao = videoDao;
         this.courseDao = courseDao;
         this.orderCourseDao = orderCourseDao;
         this.orderDao = orderDao;
-        this.videoService = videoService;
     }
 
     public CourseVO createCourse(CourseQuery course) {
@@ -72,9 +74,16 @@ public class CourseService {
 
     public CourseVO getCourse(Integer courseId, Integer userId) {
         Course courseInDb = getCourseById(courseId);
+        boolean canManagementCourse = UserContext.getUser().getRoles()
+                .stream()
+                .map(Role::getPermissionList)
+                .flatMap(Collection::stream)
+                .map(Permission::getName)
+                .anyMatch("managementCourse"::equals);
+
         Order order = orderDao.findByCourseIdAndUserId(courseId, userId);
         CourseVO courseVo = new CourseVO(courseInDb);
-        boolean isPaid = order != null && Status.PAID.equals(order.getStatus());
+        boolean isPaid = canManagementCourse || order != null && Status.PAID.equals(order.getStatus());
         courseVo.setPurchased(isPaid);
         courseVo.setVideoList(courseInDb.getVideoList().stream().map(VideoVO::new).collect(toList()));
         return courseVo;

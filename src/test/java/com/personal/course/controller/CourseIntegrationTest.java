@@ -19,7 +19,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -225,5 +224,26 @@ class CourseIntegrationTest extends AbstractIntegrationTest {
         getCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
         });
         assertEquals(Arrays.asList(null, null, null, null), getCourseResponse.getData().getVideoList().stream().map(VideoBase::getUrl).collect(toList()));
+    }
+
+    @Test
+    public void purchasedIsTrueIfCanManagementCourse() throws IOException, InterruptedException {
+        String teacherCookie = getUserCookie(new UsernameAndPassword("teacher", "teacher"));
+        HttpResponse<String> res = get("/course/1", HttpHeaders.COOKIE, teacherCookie);
+        Response<CourseVO> getCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertTrue(getCourseResponse.getData().isPurchased());
+
+        res = get("/course/2", HttpHeaders.COOKIE, teacherCookie);
+        getCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertTrue(getCourseResponse.getData().isPurchased());
+
+        String adminCookie = getAdminCookie();
+
+        res = get("/course/3", HttpHeaders.COOKIE, adminCookie);
+        getCourseResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertTrue(getCourseResponse.getData().isPurchased());
     }
 }

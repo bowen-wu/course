@@ -230,4 +230,16 @@ class VideoIntegrationTest extends AbstractIntegrationTest {
         });
         assertEquals(testUrl, getVideoResponse.getData().getUrl());
     }
+
+    @Test
+    public void canGetUrlWhenCanManagementCourse() throws IOException, InterruptedException {
+        String teacherCookie = getUserCookie(new UsernameAndPassword("teacher", "teacher"));
+        when(osClientService.generateSignUrl(anyString())).thenReturn(testUrl);
+
+        HttpResponse<String> res = get("/video/1/2", HttpHeaders.COOKIE, teacherCookie);
+        assertEquals(200, res.statusCode());
+        Response<VideoVO> getVideoResponse = objectMapper.readValue(res.body(), new TypeReference<>() {
+        });
+        assertEquals(testUrl, getVideoResponse.getData().getUrl());
+    }
 }

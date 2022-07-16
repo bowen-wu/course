@@ -1,9 +1,12 @@
 package com.personal.course.service;
 
 import com.personal.course.common.utils.GetKeyFromUrlUtil;
+import com.personal.course.configuration.UserContext;
 import com.personal.course.dao.OrderDao;
 import com.personal.course.dao.VideoDao;
 import com.personal.course.entity.DO.Order;
+import com.personal.course.entity.DO.Permission;
+import com.personal.course.entity.DO.Role;
 import com.personal.course.entity.DO.Video;
 import com.personal.course.entity.HttpException;
 import com.personal.course.entity.PageResponse;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.time.Instant;
+import java.util.Collection;
 
 @Service
 public class VideoService {
@@ -90,8 +94,15 @@ public class VideoService {
     }
 
     public VideoVO getVideoVoByVideoIdAndCourseId(Integer videoId, Integer courseId, Integer userId) {
+        boolean canManagementCourse = UserContext.getUser().getRoles()
+                .stream()
+                .map(Role::getPermissionList)
+                .flatMap(Collection::stream)
+                .map(Permission::getName)
+                .anyMatch("managementCourse"::equals);
+
         Order order = orderDao.findByCourseIdAndUserId(courseId, userId);
-        if (order != null && Status.PAID.equals(order.getStatus())) {
+        if (canManagementCourse || (order != null && Status.PAID.equals(order.getStatus()))) {
             return getVideoVoById(videoId);
         }
         throw HttpException.forbidden();
